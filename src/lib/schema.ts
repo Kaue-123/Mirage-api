@@ -27,7 +27,8 @@ export const enterpriseSchema = z.object({
       }
     }),
   Sociedade: z.string().min(1, "Sociedade é obrigatória"), 
-  Ativa_ou_Inativa: z.string().min(1, "Ativa/Inativa é obrigatório"), 
+  Status: z.string().min(1, "Ativa/Inativa é obrigatório"), 
+  Tipo: z.string().min(1, "Tipo é obrigatório"),
   Gestao: z.string().min(1, "Gestão é obrigatória"), 
   Procuracao: z.string().nullable().optional(), 
   Data_Outorga: z.string().nullable().optional().transform((value) => value ? new Date(value) : null), 

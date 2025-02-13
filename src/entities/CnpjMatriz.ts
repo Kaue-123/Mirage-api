@@ -1,21 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
-
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    ManyToOne,
+    JoinColumn,
+    OneToMany
+} from 'typeorm';
 @Entity()
 export class Enterprise {
     @PrimaryGeneratedColumn()
     id: number;
+    
+    @Column({ nullable: true })
+    id_matriz: number;
+    
+    @Column({ nullable: true })
+    Nome: string;
+    
+    @Column({ nullable: true })
+    Cnpj: string;
+
+    @Column({ nullable: true})
+    Tipo: string;
 
     @Column({ nullable: true })
-    nome: string;
+    Sociedade: string;
 
     @Column({ nullable: true })
-    cnpj: string;
-
-    @Column({ nullable: true })
-    sociedade: string;
-
-    @Column({ nullable: true })
-    ativaOuInativa: string;
+    Status: string;
 
     @Column({ nullable: true })
     Procuracao: string;
@@ -23,12 +35,11 @@ export class Enterprise {
     @Column({ nullable: true })
     Gestao: string;
 
+    @Column({ nullable: true })
+    Data_Outorga: Date; 
 
     @Column({ nullable: true })
-    DataOutorga: Date; 
-
-    @Column({ nullable: true })
-    CaixaPostal: string;
+    Caixa_Postal: string;
 
     @Column({ nullable: true })
     Notificacao: string;
@@ -37,6 +48,11 @@ export class Enterprise {
     FraseDeSeguranca: string
 
     // Relacionamento: uma empresa pode ter uma matriz (no caso de ser filial)
+    @ManyToOne(() => Enterprise, (matriz) => matriz.filiais, { nullable: true })
+    @JoinColumn({ name: "id_matriz" })
+    matriz: Enterprise;
 
 
+    @OneToMany(() => Enterprise, (filial) => filial.matriz)
+    filiais: Enterprise[];
 }

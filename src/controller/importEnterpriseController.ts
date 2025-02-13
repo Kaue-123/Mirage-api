@@ -33,26 +33,34 @@ export class EnterpriseImportController {
 
         // Criando e preenchendo a entidade Empresa
         const empresa = new Enterprise();
-        empresa.nome = parsedData.data.Nome_Empresa;
-        empresa.cnpj = parsedData.data.CNPJ ?? null;
-        empresa.sociedade = parsedData.data.Sociedade;
-        empresa.ativaOuInativa = parsedData.data.Ativa_ou_Inativa;
+        empresa.Nome = parsedData.data.Nome_Empresa;
+        empresa.Cnpj = parsedData.data.CNPJ ?? null;
+        empresa.Sociedade = parsedData.data.Sociedade;
+        empresa.Status = parsedData.data.Status;
         empresa.Gestao = parsedData.data.Gestao;
+        empresa.Tipo = parsedData.data.Tipo; 
         empresa.Procuracao = parsedData.data.Procuracao ?? null;
-        empresa.DataOutorga = parsedData.data.Data_Outorga;
-        empresa.CaixaPostal = parsedData.data.Caixa_Postal;
+        empresa.Data_Outorga = parsedData.data.Data_Outorga;
+        empresa.Caixa_Postal = parsedData.data.Caixa_Postal;
         empresa.Notificacao = parsedData.data.Notificacao;
         empresa.FraseDeSeguranca = parsedData.data.Frase_de_seguranca;
         
 
         if (empresaData.Procuração === "S/Proc" || empresaData.Procuração === undefined) { 
-          empresa.DataOutorga = null;
-          empresa.CaixaPostal = null;
+          empresa.Data_Outorga = null;
+          empresa.Caixa_Postal = null;
           empresa.Notificacao = null;
           empresa.FraseDeSeguranca = null;
         }
         // Validando e atribuindo a matriz se existir
-    
+        
+        if (empresa.Tipo === "Filial") {
+         const matriz = await this.enterpriseRepository.findByCnpj(empresa.Cnpj.substring(0, 8))
+         if (matriz) {
+            empresa.id_matriz = matriz.id;
+         }; 
+        }
+
         console.log("Repositório:", this.enterpriseRepository);
         console.log("Métodos disponíveis:", Object.keys(this.enterpriseRepository));
         // Salvando a empresa
