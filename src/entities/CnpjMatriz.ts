@@ -18,10 +18,11 @@ export class Enterprise {
     ativaOuInativa: string;
 
     @Column({ nullable: true })
+    Procuracao: string;
+    
+    @Column({ nullable: true })
     Gestao: string;
 
-    @Column({ nullable: true })
-    Procuracao: string;
 
     @Column({ nullable: true })
     DataOutorga: Date; 
