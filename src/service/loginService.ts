@@ -1,7 +1,7 @@
 import puppeteer, { Page } from "puppeteer";
 import axios from 'axios';
 
-const API_KEY = 'a7dbfcb477df5c5cf60a199436394a66'
+const API_KEY = process.env.API_KEY || "";
 
  export class LoginService { 
      async loginWithCertificate(): Promise<Page> {
