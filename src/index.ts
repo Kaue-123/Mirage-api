@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import { routes } from './routes/routes';
 import { AppdataSource } from './db/data-source';
+import { EnterpriseRepository } from './repository/EnterpriseRepository';
 
 const main = async () => {
     
@@ -9,6 +10,7 @@ const main = async () => {
     AppdataSource.initialize()
     .then(async () => {
         server.register(routes);
+
         const port = 5000;
         server.listen({ port }, (err)  => {
             if (err) {

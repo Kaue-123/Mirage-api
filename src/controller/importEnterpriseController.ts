@@ -15,13 +15,15 @@ export class EnterpriseImportController {
   async importPlanilha(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     try {
       const filePath = path.join(__dirname, '..', 'PlanilhaJson', 'convertToJson.json');
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
-      const enterpriseData: any[] = JSON.parse(fileContent);
-
+      
       if (!fs.existsSync(filePath)) {
         reply.status(404).send({ error: "Arquivo JSON não encontrado" });
         return;
       }
+
+      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      const enterpriseData: any[] = JSON.parse(fileContent);
+
 
       for (const empresaData of enterpriseData) {
         // Validação com Zod
@@ -44,6 +46,7 @@ export class EnterpriseImportController {
         empresa.Caixa_Postal = parsedData.data.Caixa_Postal;
         empresa.Notificacao = parsedData.data.Notificacao;
         empresa.FraseDeSeguranca = parsedData.data.Frase_de_seguranca;
+        empresa.id_matriz = parsedData.data.ID_Matriz ?? null;
         
 
         if (empresaData.Procuração === "S/Proc" || empresaData.Procuração === undefined) { 

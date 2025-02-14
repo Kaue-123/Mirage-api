@@ -18,7 +18,16 @@ export class EnterpriseRepository {
   }
 
   async findByCnpj(cnpj: string): Promise<Enterprise | undefined> {
-    return this.repository.findOne({ where: { cnpj } });
+    return this.repository.findOne({ where: { Cnpj: cnpj } });
+  }
+
+  async findMatrizByCnpjBase(cnpjBase: string): Promise<Enterprise | undefined> {
+    return this.repository.findOne({
+      where: {
+        Cnpj: (cnpj: string) => cnpj.startsWith(cnpjBase) && cnpj.includes("/0001-"),
+        Tipo: "matriz"
+      }
+    })
   }
 
   async findAll(): Promise<Enterprise[]> {
@@ -30,22 +39,24 @@ export class EnterpriseRepository {
     const empresas = await this.findAll();
 
     // Separar matrizes e filiais
-    const matrizes = empresas.filter((e) => e.Tipo === "matriz");
-    const filiais = empresas.filter((e) => e.Tipo === "filial");
+    const matrizes = empresas.filter((e) => e.Tipo.toLowerCase() === "matriz" && !!e.Cnpj);
+    const filiais = empresas.filter((e) => e.Tipo.toLowerCase() === "filial" && !!e.Cnpj);
 
     const updates = filiais.map(filial => {
-      const cnpjBase = filial.Cnpj.substring(0, 8);  
+      const cnpjBase = filial.Cnpj.substring(0, 10);  
   
     
-      const matriz = matrizes.find((m) => m.Cnpj.substring(0, 8) === cnpjBase); 
+      const matriz = matrizes.find(m => 
+        m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("/0001-")
+      );
   
       if (matriz) {
         
         filial.id_matriz = matriz.id;
         filial.matriz = matriz; // Relaciona o objeto completo da matriz, se necessário
+        return this.repository.save(filial); 
       }
   
-      return this.repository.save(filial); 
     });
     await Promise.all(updates);
     console.log("Todas as filiais foram associadas às suas matrizes com sucesso");

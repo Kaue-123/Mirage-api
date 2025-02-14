@@ -49,7 +49,6 @@ export class Enterprise {
 
     // Relacionamento: uma empresa pode ter uma matriz (no caso de ser filial)
     @ManyToOne(() => Enterprise, (matriz) => matriz.filiais, { nullable: true })
-    @JoinColumn({ name: "id_matriz" })
     matriz: Enterprise;
 
 

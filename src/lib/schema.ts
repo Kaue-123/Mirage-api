@@ -35,7 +35,7 @@ export const enterpriseSchema = z.object({
   Caixa_Postal: z.enum(["S", "N"]).nullable().optional(), 
   Notificacao: z.enum(["S", "N"]).nullable().optional(), 
   Frase_de_seguranca: z.string().nullable().optional(), 
-  matriz_id: z.string().nullable().optional(), 
+  ID_Matriz: z.number().nullable().optional(), 
 });
 
 
