@@ -18,11 +18,15 @@
   },
   "dependencies": {
     "2captcha": "^3.0.5-2",
+    "anticaptcha": "^2.2.0",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "fastify": "^5.2.1",
     "mysql2": "^3.12.0",
     "puppeteer": "^24.2.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-recaptcha": "^3.6.8",
+    "puppeteer-extra-plugin-recaptcha-anti-captcha": "^1.0.4",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.20",
     "zod": "^3.24.1"
