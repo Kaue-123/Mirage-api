@@ -22,12 +22,13 @@ export class EnterpriseRepository {
   }
 
   async findMatrizByCnpjBase(cnpjBase: string): Promise<Enterprise | undefined> {
-    return this.repository.findOne({
-      where: {
-        Cnpj: (cnpj: string) => cnpj.startsWith(cnpjBase) && cnpj.includes("/0001-"),
-        Tipo: "matriz"
-      }
-    })
+    const matrizes = await this.repository.find({
+      where: { Tipo: "Matriz" }
+    });
+
+    return matrizes.find((matriz) =>
+      matriz.Cnpj.startsWith(cnpjBase) && matriz.Cnpj.includes("/0001-")
+    );
   }
 
   async findAll(): Promise<Enterprise[]> {
@@ -43,20 +44,20 @@ export class EnterpriseRepository {
     const filiais = empresas.filter((e) => e.Tipo.toLowerCase() === "filial" && !!e.Cnpj);
 
     const updates = filiais.map(filial => {
-      const cnpjBase = filial.Cnpj.substring(0, 10);  
-  
-    
-      const matriz = matrizes.find(m => 
+      const cnpjBase = filial.Cnpj.substring(0, 10);
+
+
+      const matriz = matrizes.find(m =>
         m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("/0001-")
       );
-  
+
       if (matriz) {
-        
+
         filial.id_matriz = matriz.id;
         filial.matriz = matriz; // Relaciona o objeto completo da matriz, se necessário
-        return this.repository.save(filial); 
+        return this.repository.save(filial);
       }
-  
+
     });
     await Promise.all(updates);
     console.log("Todas as filiais foram associadas às suas matrizes com sucesso");

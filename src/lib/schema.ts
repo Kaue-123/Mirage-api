@@ -26,10 +26,10 @@ export const enterpriseSchema = z.object({
         });
       }
     }),
-  Sociedade: z.string().min(1, "Sociedade é obrigatória"), 
+  Sociedade: z.string().nullable().optional(),
   Status: z.string().min(1, "Ativa/Inativa é obrigatório"), 
   Tipo: z.string().min(1, "Tipo é obrigatório"),
-  Gestao: z.string().min(1, "Gestão é obrigatória"), 
+  Gestao: z.string().nullable().optional(),
   Procuracao: z.string().nullable().optional(), 
   Data_Outorga: z.string().nullable().optional().transform((value) => value ? new Date(value) : null), 
   Caixa_Postal: z.enum(["S", "N"]).nullable().optional(), 
