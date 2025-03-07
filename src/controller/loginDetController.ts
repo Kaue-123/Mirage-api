@@ -6,10 +6,13 @@ export class LoginController {
     static async loginDET(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
             const loginservice = new LoginService();
-            const page = await loginservice.loginWithCertificate();
+            const {page, bearerToken} = await loginservice.loginWithCertificate();
 
+            if (!bearerToken) {
+                return reply.status(401).send({ message: "Token de autenticação não encontrado" });
+            }
 
-            const detService = new DetService();
+            const detService = new DetService(bearerToken);
             await detService.start(page);
 
 
