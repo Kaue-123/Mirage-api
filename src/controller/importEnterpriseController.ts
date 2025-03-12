@@ -2,12 +2,10 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { EnterpriseRepository } from "../repository/EnterpriseRepository";
 import { Enterprise } from "../entities/CnpjMatriz";
 
-
 import * as fs from "fs";
 import * as path from "path";
 
 import { enterpriseSchema } from "../lib/schema";
-
 
 export class EnterpriseImportController {
   private enterpriseRepository = new EnterpriseRepository();
@@ -24,7 +22,6 @@ export class EnterpriseImportController {
       const fileContent = fs.readFileSync(filePath, 'utf-8');
       const enterpriseData: any[] = JSON.parse(fileContent);
 
-
       for (const empresaData of enterpriseData) {
         // Validação com Zod
         const parsedData = enterpriseSchema.safeParse(empresaData);
@@ -36,7 +33,7 @@ export class EnterpriseImportController {
         // Criando e preenchendo a entidade Empresa
         const empresa = new Enterprise();
         empresa.Nome = parsedData.data.Nome_Empresa;
-        empresa.Cnpj = parsedData.data.CNPJ ?? null;
+        empresa.Cnpj = parsedData.data.CNPJ ?? null; // Já vem limpo do schema
         empresa.Sociedade = parsedData.data.Sociedade;
         empresa.Status = parsedData.data.Status;
         empresa.Gestao = parsedData.data.Gestao;
@@ -48,28 +45,28 @@ export class EnterpriseImportController {
         empresa.FraseDeSeguranca = parsedData.data.Frase_de_seguranca;
         empresa.id_matriz = parsedData.data.ID_Matriz ?? null;
 
-
+        // Verificação de campos opcionais
         if (empresaData.Procuração === "S/Proc" || empresaData.Procuração === undefined) {
-
-          if (!empresa.Data_Outorga) empresa.Data_Outorga = null;
-          if (!empresa.Caixa_Postal) empresa.Caixa_Postal = null;
-          if (!empresa.Notificacao) empresa.Notificacao = null;
-          if (!empresa.FraseDeSeguranca) empresa.FraseDeSeguranca = null;
+          empresa.Data_Outorga = empresa.Data_Outorga || null;
+          empresa.Caixa_Postal = empresa.Caixa_Postal || null;
+          empresa.Notificacao = empresa.Notificacao || null;
+          empresa.FraseDeSeguranca = empresa.FraseDeSeguranca || null;
         }
-        // Validando e atribuindo a matriz se existir
 
-        if (empresa.Tipo === "Filial") {
-          const cnpjBase = empresa.Cnpj.substring(0, 10)
-          const matriz = await this.enterpriseRepository.findMatrizByCnpjBase(cnpjBase)
+        // Validando e atribuindo a matriz se existir
+        if (empresa.Tipo === "Filial" && empresa.Cnpj) {
+          const cnpjBase = empresa.Cnpj.substring(0, 8); // Base CNPJ (8 primeiros dígitos)
+          const matriz = await this.enterpriseRepository.findMatrizByCnpjBase(cnpjBase);
           if (matriz) {
             empresa.id_matriz = matriz.id;
           }
         } else if (empresa.Tipo === "Matriz") {
-          empresa.id_matriz = null
+          empresa.id_matriz = null;
         }
 
         console.log("Repositório:", this.enterpriseRepository);
         console.log("Métodos disponíveis:", Object.keys(this.enterpriseRepository));
+
         // Salvando a empresa
         await this.enterpriseRepository.save(empresa);
       }

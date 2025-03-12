@@ -1,8 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { EnterpriseImportController } from '../controller/importEnterpriseController';
-import { EnterpriseListController } from '../controller/enterpriseController';
 import { EnterpriseRepository } from '../repository/EnterpriseRepository';
-import { LoginController } from '../controller/loginDetController';
 
 export async function enterpriseRoutes(fastify: FastifyInstance) {
     
@@ -21,11 +19,4 @@ export async function enterpriseRoutes(fastify: FastifyInstance) {
         }
     })
 
-    
-
-    // Rota para listar empresas (GET)
-    // fastify.get('/enterprise/enterprises', async (request, reply) => {
-    //     const listController = new EnterpriseListController();
-    //     await listController.listEnterprises(request, reply);   
-    // });
 }

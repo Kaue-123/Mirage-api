@@ -12,6 +12,7 @@ export class LoginService {
                 '--start-maximized',
                 '--force-device-scale-factor=0.9',
                 '--ignore-certificate-errors',
+                '--allow-running-insecure-content',
                 '--auto-select-certificate-for-urls={"pattern":"https://det.sit.trabalho.gov.br","filter":{}}',
                 '--ssl-client-cert-file=C:\\Users\\Kaue\\Documentos\\Certificados\\cert.pem',
                 '--ssl-client-key-file=C:\\Users\\Kaue\\Documentos\\Certificados\\key.pem',
@@ -74,7 +75,7 @@ export class LoginService {
             throw new Error("Falha ao resolver captcha");
         }
 
-  
+
         await new Promise(resolve => setTimeout(resolve, 1000));
         await page.evaluate((captchaToken) => {
             const captchaInput = document.querySelector('[name="h-captcha-response"]') as HTMLInputElement;
@@ -96,23 +97,27 @@ export class LoginService {
             }
         });
 
-        
-        await page.waitForResponse(response => 
-            response.url().includes('services/v1/empregadores/34331182000103/cadastrado') && response.status() === 200).then((response) => {
-            const tokenHeader = response.headers()['Authorization'];
-            if (tokenHeader && tokenHeader.startsWith('Bearer ')) {
-                bearerToken = tokenHeader.replace('Bearer ', '');
-                console.log("Bearer Token capturado da Rota de Cadastro:", bearerToken);
+
+        page.on('response', async (response) => {
+            const url = response.url();
+            const status = response.status();
+
+            // Verificar se a URL e o status são os esperados para pegar o Bearer Token
+            if (status === 200 && url.includes('services/v1/empregadores')) {
+                const tokenHeader = response.headers()['authorization'];
+                if (tokenHeader && tokenHeader.startsWith('Bearer ')) {
+                    bearerToken = tokenHeader.replace('Bearer ', '');
+                    console.log("Bearer Token capturado da resposta:", bearerToken);
+                }
             }
         });
 
         if (!bearerToken) {
-            console.error("Bearer Token não capturado após o login")
             throw new Error("Bearer Token não capturado após login");
         }
 
         await page.waitForNavigation({ waitUntil: 'networkidle2' });
-        
+
         return { page, bearerToken };
     }
 }
