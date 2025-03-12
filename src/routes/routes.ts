@@ -1,7 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { enterpriseRoutes } from "./matriz.routes";
-import { detRoutes } from "./det.routes";
-
+import { loginRoutes } from "./det.routes";
 
 export const routes = async (fastify: FastifyInstance) => {
     // Registrando as rotas de Enterprise
@@ -9,5 +8,9 @@ export const routes = async (fastify: FastifyInstance) => {
 };
 
 export const detRoutesLogin = async (fastify: FastifyInstance) => {
-    fastify.register(detRoutes);
+    fastify.register(loginRoutes);
 }
+
+export const detRoutes = async (fastify: FastifyInstance) => {
+    fastify.register(detRoutes);
+} 

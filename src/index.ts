@@ -1,8 +1,9 @@
 import fastify from 'fastify';
-import { routes } from './routes/routes';
+import { detRoutesLogin, routes } from './routes/routes';
 import { AppdataSource } from './db/data-source';
 import { EnterpriseRepository } from './repository/EnterpriseRepository';
-import { detRoutes } from './routes/det.routes';
+import { loginRoutes } from './routes/det.routes';
+import { detRoutes } from './routes/procuracao.routes';
 
 const main = async () => {
     
@@ -12,7 +13,8 @@ const main = async () => {
     .then(async () => {
         
         server.register(routes);
-        server.register(detRoutes)
+        server.register(detRoutesLogin);
+        server.register(detRoutes);
         
         const port = 5012;
         server.listen({ port }, (err)  => {
