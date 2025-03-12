@@ -45,17 +45,27 @@ export class DetController {
 
 
                     const procuracao = await detService.existeProcuracao(cnpjProcurado.Cnpj);
+                    const servicosHabilitados = await detService.servicosHabilitados(cnpjProcurado);
                     const service = await detService.serviceCnpj(cnpjProcurado.Cnpj);
-                    const servicosHabilitados = await detService.verificarServicosHabilitados(cnpjProcurado);
-                    const mensagensNaoLidas = await detService.verificarMensagensNaoLidas(cnpjProcurado.Cnpj);
+                    const messages = await detService.messages(cnpjProcurado.Cnpj);
+                    const consultaCompleta = await detService.consultaCompleta(cnpjProcurado.Cnpj);
+                    const cadastroEmpregador = await detService.cadastroEmpregador(cnpjProcurado.Cnpj);
+                    const mensagensNaoLidas = await detService.mensagensNaoLidas(cnpjProcurado.Cnpj);
+                    const servicoAutorizado = await detService.servicosAutorizados(cnpjProcurado.Cnpj);
+                    const caixaPostal = await detService.caixaPostal(cnpjProcurado.Cnpj);
 
 
                     resultados.push({
                         cnpj: cnpjProcurado.Cnpj,
                         procuracao,
-                        service,
                         servicosHabilitados,
-                        mensagensNaoLidas
+                        service,
+                        messages,
+                        consultaCompleta,
+                        cadastroEmpregador,
+                        mensagensNaoLidas,
+                        servicoAutorizado,
+                        caixaPostal
                     });
                 }
 
