@@ -31,7 +31,7 @@ export class DetController {
 
             const resultados = [];
             const batchSize = 10; // Quantidade de CNPJs por lote
-            const delay = 60000;
+            const delay = 60000; // 1 minuto de delay para cada consulta por lote
 
 
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
@@ -46,7 +46,7 @@ export class DetController {
 
                     const procuracao = await detService.existeProcuracao(cnpjProcurado.Cnpj);
                     const servicosHabilitados = await detService.servicosHabilitados(cnpjProcurado);
-                    const service = await detService.serviceCnpj(cnpjProcurado.Cnpj);
+                    // const service = await detService.serviceCnpj(cnpjProcurado.Cnpj);
                     const messages = await detService.messages(cnpjProcurado.Cnpj);
                     const consultaCompleta = await detService.consultaCompleta(cnpjProcurado.Cnpj);
                     const cadastroEmpregador = await detService.cadastroEmpregador(cnpjProcurado.Cnpj);
@@ -59,7 +59,7 @@ export class DetController {
                         cnpj: cnpjProcurado.Cnpj,
                         procuracao,
                         servicosHabilitados,
-                        service,
+                        // service,
                         messages,
                         consultaCompleta,
                         cadastroEmpregador,
