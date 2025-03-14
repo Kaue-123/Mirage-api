@@ -21,8 +21,6 @@ export class DetController {
             }
 
             const detService = new DetService(bearerToken);
-
-
             const cnpjsProcurados = await AppdataSource.getRepository(Enterprise).find();
 
             if (cnpjsProcurados.length === 0) {
@@ -33,42 +31,61 @@ export class DetController {
             const batchSize = 10; // Quantidade de CNPJs por lote
             const delay = 60000; // 1 minuto de delay para cada consulta por lote
 
-
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
                 const batch = cnpjsProcurados.slice(i, i + batchSize);
-
                 console.log(`Processando lote de ${batch.length} CNPJs...`);
-
 
                 for (const cnpjProcurado of batch) {
                     console.log(`Processando CNPJ: ${cnpjProcurado.Cnpj}`);
 
-
-                    const procuracao = await detService.existeProcuracao(cnpjProcurado.Cnpj);
+                  
                     const servicosHabilitados = await detService.servicosHabilitados(cnpjProcurado);
-                    // const service = await detService.serviceCnpj(cnpjProcurado.Cnpj);
-                    const messages = await detService.messages(cnpjProcurado.Cnpj);
-                    const consultaCompleta = await detService.consultaCompleta(cnpjProcurado.Cnpj);
-                    const cadastroEmpregador = await detService.cadastroEmpregador(cnpjProcurado.Cnpj);
-                    const mensagensNaoLidas = await detService.mensagensNaoLidas(cnpjProcurado.Cnpj);
-                    const servicoAutorizado = await detService.servicosAutorizados(cnpjProcurado.Cnpj);
-                    const caixaPostal = await detService.caixaPostal(cnpjProcurado.Cnpj);
 
+                    if (servicosHabilitados.length === 0) {
+                        console.log(`CNPJ ${cnpjProcurado.Cnpj} sem procuração. Verificando mensagens...`);
 
-                    resultados.push({
-                        cnpj: cnpjProcurado.Cnpj,
-                        procuracao,
-                        servicosHabilitados,
-                        // service,
-                        messages,
-                        consultaCompleta,
-                        cadastroEmpregador,
-                        mensagensNaoLidas,
-                        servicoAutorizado,
-                        caixaPostal
-                    });
+                       
+                        const messages = await detService.messages(cnpjProcurado.Cnpj);
+
+                       
+                        if (Array.isArray(messages) && messages.some(msg => msg.codigo === 110)) {
+                            console.log(`CNPJ ${cnpjProcurado.Cnpj} com código 110. Interrompendo e passando para o próximo.`);
+                            resultados.push({ cnpj: cnpjProcurado.Cnpj, status: "Interrompido - Código 110" });
+                            continue;
+                        }
+
+                        resultados.push({ 
+                            cnpj: cnpjProcurado.Cnpj, 
+                            status: "Sem procuração", 
+                            messages 
+                        });
+
+                    } else if (servicosHabilitados.length === 5) {
+                        console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para consulta completa...`);
+
+                        // Se tem procuração, segue 
+                        // const consultaCompleta = await detService.consultaCompleta(cnpjProcurado.Cnpj);
+                        const mensagensNaoLidas = await detService.mensagensNaoLidas(cnpjProcurado.Cnpj);
+                        const servicoAutorizado = await detService.servicosAutorizados(cnpjProcurado.Cnpj);
+                        const caixaPostal = await detService.caixaPostal(cnpjProcurado.Cnpj);
+
+                        resultados.push({
+                            cnpj: cnpjProcurado.Cnpj,
+                            status: "Com procuração",
+                            servicosHabilitados,
+                            // consultaCompleta,
+                            mensagensNaoLidas,
+                            servicoAutorizado,
+                            caixaPostal
+                        });
+                    } else {
+                        console.log(`CNPJ ${cnpjProcurado.Cnpj} com retorno inesperado em serviços habilitados.`);
+                        resultados.push({ 
+                            cnpj: cnpjProcurado.Cnpj, 
+                            status: "Erro - Retorno inesperado em serviços habilitados" 
+                        });
+                    }
                 }
-
 
                 if (i + batchSize < cnpjsProcurados.length) {
                     console.log("Aguardando 1 minuto para processar o próximo lote...");
@@ -80,6 +97,7 @@ export class DetController {
                 message: "Resultados da verificação para os CNPJs processados:",
                 resultados
             });
+
         } catch (error) {
             console.error("Erro ao verificar procuração e mensagens:", error);
             return reply.status(500).send({

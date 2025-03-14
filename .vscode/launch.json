@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch TypeScript",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/src/index.ts",  // Aponta diretamente para o arquivo TS
+            "runtimeArgs": [
+                "-r", "ts-node/register"  // Usa ts-node para rodar o código TS
+            ],
+            "sourceMaps": true,  // Permite usar os mapas de origem para depuração
+            "outFiles": [
+                "${workspaceFolder}/dist/**/*.js"  // Pasta de saída para arquivos JavaScript (se necessário)
+            ]
+        }
+    ]
+}
