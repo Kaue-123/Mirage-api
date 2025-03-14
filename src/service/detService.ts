@@ -34,7 +34,7 @@ export class DetService {
                 return;
             }
 
-           
+
 
             for (const cnpjProcurado of cnpjsProcurados) {
                 console.log(`Processando CNPJ Procurado: ${cnpjProcurado.Cnpj}`);
@@ -52,7 +52,7 @@ export class DetService {
                     continue;
                 }
 
-                await this.messages(cnpjProcurado.Cnpj);
+                // await this.messages(cnpjProcurado.Cnpj);
 
                 await this.mensagensNaoLidas(cnpjProcurado.Cnpj);
 
@@ -85,7 +85,7 @@ export class DetService {
                 throw new Error(`Resposta inesperada da API: Não é JSON. Tipo: ${contentType}`);
             }
 
-            
+
 
             const newToken = response.headers['set-token'];
             if (newToken && newToken !== this.bearerToken) {
@@ -104,7 +104,7 @@ export class DetService {
         }
     }
 
-    
+
 
 
     // Verifica se existe procuração para o CNPJ procurado
@@ -154,30 +154,30 @@ export class DetService {
 
 
     // Rota retornada para exibir erros de mensagens (Retorna apenas para os CNPJ's que não possuem procuração)
-    async messages(cnpjProcurado: string) {
-        const cnpjEmpregador = limparCNPJ(cnpjProcurado);
-        console.log(`Verificando avisos para o CNPJ: ${cnpjEmpregador}...`);
+    // async messages(cnpjProcurado: string) {
+    //     const cnpjEmpregador = limparCNPJ(cnpjProcurado);
+    //     console.log(`Verificando avisos para o CNPJ: ${cnpjEmpregador}...`);
 
-        const url = `/services/v1/messages`;
-        const response = await this.makeRequest('GET', url);
+    //     const url = `/services/v1/messages`;
+    //     const response = await this.makeRequest('GET', url);
 
-        if (Array.isArray(response)) {
-            
-            const chave110 = response.some(msg => msg.codigo === 110);
-            if (chave110) {
-                console.log(`Aviso com chave 110 encontrado para o CNPJ ${cnpjEmpregador}.`);
-                return false; 
-            }
-        } else {
-            
-            if (response && response.key === "perfil.inscricaoSemProcuracao") {
-                console.log(`CNPJ ${cnpjEmpregador} não possui procuração.`);
-                return false; 
-            }
-        }
-    
-        return true; 
-    }
+    //     if (Array.isArray(response)) {
+
+    //         const chave110 = response.some(msg => msg.codigo === 110);
+    //         if (chave110) {
+    //             console.log(`Aviso com chave 110 encontrado para o CNPJ ${cnpjEmpregador}.`);
+    //             return false; 
+    //         }
+    //     } else {
+
+    //         if (response && response.key === "perfil.inscricaoSemProcuracao") {
+    //             console.log(`CNPJ ${cnpjEmpregador} não possui procuração.`);
+    //             return false; 
+    //         }
+    //     }
+
+    //     return true; 
+    // }
 
 
     // Caso o CNPJ contenha um certificado válido, e a procuração esteja realizada, o método consultaCompleta é chamado (Retorna apenas para os CNPJ's que possuem procuração)
@@ -245,20 +245,18 @@ export class DetService {
     async servicosAutorizados(cnpjProcurado: string) {
         const cnpjCertificado = this.certificadoCnpj
         const cnpjEmpregador = limparCNPJ(cnpjProcurado);
-        console.log(`Verificando serviços autorizados para o CNPJ: ${cnpjEmpregador}...`);
-
-
+        
 
         const url = `/services/v1/procuracoes/servico-autorizado/${cnpjCertificado}/${cnpjEmpregador}/DET0003`;
 
         const response = await this.makeRequest('GET', url);
 
-        
-        if (response === 'true') {
-            console.log(`Serviços autorizados para o CNPJ: ${cnpjProcurado}`);
+
+        if (response === true || response === 'true') {
+            console.log(`Caixa postal acessada para o CNPJ: ${cnpjProcurado}`);
             return response;
         } else {
-            console.log(`Nenhum serviço autorizado encontrado para o CNPJ: ${cnpjProcurado}`);
+            console.log(`Sem acesso a caixa postal para o CNPJ: ${cnpjProcurado}`);
             return null;
         }
     }
@@ -266,12 +264,12 @@ export class DetService {
     // Caixa postal retorna as mensagens recebidas para o empregador (Retorna apenas para os CNPJ's que possuem procuração)
     async caixaPostal(cnpjProcurado: string) {
         const cnpjEmpregador = limparCNPJ(cnpjProcurado);
-        console.log(`Verificando caixa postal para o CNPJ: ${cnpjEmpregador}...`);
+
 
         const url = `/services/v1/caixapostal/${cnpjEmpregador}`;
         const response = await this.makeRequest('GET', url);
 
-        if (response && response.resultado === 'null') {
+        if (!response || typeof response !== 'object' || Object.keys(response).length === 0) {
             console.log(`Nenhuma mensagem encontrada para o CNPJ ${cnpjEmpregador}.`);
             return null;
         }
@@ -301,7 +299,7 @@ export class DetService {
             console.log(`Mensagens encontradas para o CNPJ ${cnpjEmpregador}:`, mensagens);
             return mensagens;
         } else {
-            console.log("Resposta não contém mensagens válidas.");
+            console.log("Mensagem não segue o escopo válido do json.");
             return null;
         }
     }

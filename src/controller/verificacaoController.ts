@@ -28,7 +28,7 @@ export class DetController {
             }
 
             const resultados = [];
-            const batchSize = 10; // Quantidade de CNPJs por lote
+            const batchSize = 20; // Quantidade de CNPJs por lote
             const delay = 60000; // 1 minuto de delay para cada consulta por lote
 
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
@@ -42,26 +42,20 @@ export class DetController {
                     const servicosHabilitados = await detService.servicosHabilitados(cnpjProcurado);
 
                     if (servicosHabilitados.length === 0) {
-                        console.log(`CNPJ ${cnpjProcurado.Cnpj} sem procuração. Verificando mensagens...`);
+                        console.log(`CNPJ ${cnpjProcurado.Cnpj} sem procuração.`);
 
                        
-                        const messages = await detService.messages(cnpjProcurado.Cnpj);
+                        // const messages = await detService.messages(cnpjProcurado.Cnpj);
 
                        
-                        if (Array.isArray(messages) && messages.some(msg => msg.codigo === 110)) {
-                            console.log(`CNPJ ${cnpjProcurado.Cnpj} com código 110. Interrompendo e passando para o próximo.`);
-                            resultados.push({ cnpj: cnpjProcurado.Cnpj, status: "Interrompido - Código 110" });
-                            continue;
-                        }
-
                         resultados.push({ 
                             cnpj: cnpjProcurado.Cnpj, 
                             status: "Sem procuração", 
-                            messages 
+                            // messages 
                         });
 
                     } else if (servicosHabilitados.length === 5) {
-                        console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para consulta completa...`);
+                        console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para mensagens não lidas...`);
 
                         // Se tem procuração, segue 
                         // const consultaCompleta = await detService.consultaCompleta(cnpjProcurado.Cnpj);
