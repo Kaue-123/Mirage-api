@@ -1,7 +1,8 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Enterprise } from "../entities/CnpjMatriz";
+import { Enterprise } from "../entities/Enterprises";
 import { config } from "dotenv";
+import { ContentMessages } from "../entities/ContentMessages";
 
 config()
 
@@ -15,7 +16,7 @@ export const AppdataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: false,
-    entities: [Enterprise],
+    entities: [Enterprise, ContentMessages],
     migrations: [],
     subscribers: [],
     

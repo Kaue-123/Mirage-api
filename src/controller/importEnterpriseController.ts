@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { EnterpriseRepository } from "../repository/EnterpriseRepository";
-import { Enterprise } from "../entities/CnpjMatriz";
+import { Enterprise } from "../entities/Enterprises";
 
 import * as fs from "fs";
 import * as path from "path";

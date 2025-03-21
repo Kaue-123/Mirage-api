@@ -1,8 +1,6 @@
 import fastify from 'fastify';
 import { detRoutesLogin, routes } from './routes/routes';
 import { AppdataSource } from './db/data-source';
-import { EnterpriseRepository } from './repository/EnterpriseRepository';
-import { loginRoutes } from './routes/det.routes';
 import { detRoutes } from './routes/procuracao.routes';
 
 const main = async () => {
@@ -16,7 +14,7 @@ const main = async () => {
         server.register(detRoutesLogin);
         server.register(detRoutes);
         
-        const port = 5015;
+        const port = 5016;
         server.listen({ port }, (err)  => {
             if (err) {
                 server.log.error(err);

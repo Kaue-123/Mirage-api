@@ -1,6 +1,6 @@
 
 import { AppdataSource } from "../db/data-source";
-import { Enterprise } from "../entities/CnpjMatriz";
+import { Enterprise } from "../entities/Enterprises";
 
 
 export class EnterpriseRepository {

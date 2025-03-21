@@ -3,7 +3,17 @@ import { Page } from 'puppeteer';
 import axios from 'axios';
 
 export class LoginService {
+    private certificadoCnpj = '34331182000103';
+    private bearerToken: string 
+    private apiUrl = process.env.BASE_URL;
+
+    constructor() {
+        this.bearerToken = '';
+    }
+
+
     async loginWithCertificate(): Promise<{ page: Page; bearerToken: string }> {
+      
         const browser = await puppeteer.launch({
             headless: false,
             executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -52,42 +62,46 @@ export class LoginService {
         console.log("Captcha enviado. Task ID:", data.request);
         const taskId = data.request;
 
-        let captchaToken;
-        for (let i = 0; i < 30; i++) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            const { data: solutionResponse } = await axios.get('http://2captcha.com/res.php', {
-                params: {
-                    key: "c60b640dd62d387ef1c4bcb792add8c6",
-                    action: 'get',
-                    id: taskId,
-                    json: 1
+        try {
+            let captchaToken;
+            for (let i = 0; i < 30; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                const { data: solutionResponse } = await axios.get('http://2captcha.com/res.php', {
+                    params: {
+                        key: "c60b640dd62d387ef1c4bcb792add8c6",
+                        action: 'get',
+                        id: taskId,
+                        json: 1
+                    }
+                });
+    
+                if (solutionResponse.status === 1) {
+                    captchaToken = solutionResponse.request;
+                    break;
                 }
-            });
-
-            if (solutionResponse.status === 1) {
-                captchaToken = solutionResponse.request;
-                break;
             }
-        }
-
-        if (!captchaToken) {
-            console.error("Token do captcha não encontrado");
-            throw new Error("Falha ao resolver captcha");
-        }
-
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await page.evaluate((captchaToken) => {
-            const captchaInput = document.querySelector('[name="h-captcha-response"]') as HTMLInputElement;
-            if (captchaInput) {
-                captchaInput.value = captchaToken;
-                captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
-                captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
-                console.log("Token do captcha injetado.");
-            } else {
-                console.error("Input do captcha não encontrado");
+    
+            if (!captchaToken) {
+                console.error("Token do captcha não encontrado");
+                throw new Error("Falha ao resolver captcha");
             }
-        }, captchaToken);
+    
+    
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await page.evaluate((captchaToken) => {
+                const captchaInput = document.querySelector('[name="h-captcha-response"]') as HTMLInputElement;
+                if (captchaInput) {
+                    captchaInput.value = captchaToken;
+                    captchaInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    captchaInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    console.log("Token do captcha injetado.");
+                } else {
+                    console.error("Input do captcha não encontrado");
+                }
+            }, captchaToken);
+        } catch (error) {
+            console.error("Erro ao resolver o captcha", error.message)
+        }
 
         await page.evaluate(() => {
             const form = document.querySelector("form");
@@ -97,27 +111,31 @@ export class LoginService {
             }
         });
 
+        await new Promise((resolve, reject) => {
 
-        page.on('response', async (response) => {
-            const url = response.url();
-            const status = response.status();
+            page.on('response', async (response) => {
+                const url = response.url();
+                const status = response.status();
 
-            // Verificar se a URL e o status são os esperados para pegar o Bearer Token
-            if (status === 200 && url.includes('services/v1/empregadores')) {
-                const tokenHeader = response.headers()['authorization'];
-                if (tokenHeader && tokenHeader.startsWith('Bearer ')) {
-                    bearerToken = tokenHeader.replace('Bearer ', '');
-                    console.log("Bearer Token capturado da resposta:", bearerToken);
+                if (status === 200 && url.includes(`https://det.sit.trabalho.gov.br/services/v1/empregadores/${this.certificadoCnpj}/cadastrado`)) {
+                    const tokenHeader = response.headers()['set-token'];
+                    if (tokenHeader) {
+                        this.bearerToken = tokenHeader;
+                        console.log("Bearer Token capturado da resposta:", this.bearerToken);
+                        resolve(void 0);
+                    }
                 }
-            }
+            });
+            setTimeout(() => {
+                reject(new Error("Bearer Token não capturado após login"));
+            }, 10000); 
         });
-
-        if (!bearerToken) {
+        if (!this.bearerToken) {
             throw new Error("Bearer Token não capturado após login");
         }
-
-        await page.waitForNavigation({ waitUntil: 'networkidle2' });
-
-        return { page, bearerToken };
+        return { page, bearerToken: this.bearerToken };
+    }
+    getBearerToken(): string { 
+        return this.bearerToken;
     }
 }

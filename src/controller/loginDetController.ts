@@ -1,23 +1,28 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { LoginService } from "../service/loginService";
 import { DetService } from "../service/detService";
+import { DetController } from "./verificacaoController";
 
 export class LoginController {
     static async loginDET(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
             const loginService = new LoginService();
-            const { page, bearerToken } = await loginService.loginWithCertificate();
+            const { page} = await loginService.loginWithCertificate()
+
+
+            const bearerToken = loginService.getBearerToken();
 
             if (!bearerToken) {
                 return reply.status(401).send({ message: "Token de autenticação não encontrado" });
             }
 
-            const detService = new DetService(bearerToken);
-            const resultado = await detService.start();
+            request.headers['authorization'] = `Bearer ${bearerToken}`;
+
+            await DetController.verificarProcuracao(request, reply); // Passa o request e reply para o DetController
+
 
             return reply.send({ 
                 message: "Login efetuado com sucesso e CNPJs processados.", 
-                resultado, 
                 page 
             });
         } catch (error) {
