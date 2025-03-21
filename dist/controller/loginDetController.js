@@ -2,20 +2,20 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LoginController = void 0;
 const loginService_1 = require("../service/loginService");
-const detService_1 = require("../service/detService");
+const verificacaoController_1 = require("./verificacaoController");
 class LoginController {
     static async loginDET(request, reply) {
         try {
             const loginService = new loginService_1.LoginService();
-            const { page, bearerToken } = await loginService.loginWithCertificate();
+            const { page } = await loginService.loginWithCertificate();
+            const bearerToken = loginService.getBearerToken();
             if (!bearerToken) {
                 return reply.status(401).send({ message: "Token de autenticação não encontrado" });
             }
-            const detService = new detService_1.DetService(bearerToken);
-            const resultado = await detService.start();
+            request.headers['authorization'] = `Bearer ${bearerToken}`;
+            await verificacaoController_1.DetController.verificarProcuracao(request, reply); // Passa o request e reply para o DetController
             return reply.send({
                 message: "Login efetuado com sucesso e CNPJs processados.",
-                resultado,
                 page
             });
         }

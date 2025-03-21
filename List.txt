@@ -1,0 +1,8 @@
+/*
+
+    Criar uma tabela nova para as mensagens;
+    Armazenar o conteúdo dessas mensagens na tabela do banco de dados, e relacionar com o id do cnpj;
+    Corrigir função para cadastro do CNPJ empregador;
+    Atribuir refresh token a cada requisição de novo CNPJ buscado;
+
+/*

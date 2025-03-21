@@ -3,8 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppdataSource = void 0;
 require("reflect-metadata");
 const typeorm_1 = require("typeorm");
-const CnpjMatriz_1 = require("../entities/CnpjMatriz");
+const Enterprises_1 = require("../entities/Enterprises");
 const dotenv_1 = require("dotenv");
+const ContentMessages_1 = require("../entities/ContentMessages");
 (0, dotenv_1.config)();
 exports.AppdataSource = new typeorm_1.DataSource({
     type: "mysql",
@@ -15,7 +16,7 @@ exports.AppdataSource = new typeorm_1.DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: false,
-    entities: [CnpjMatriz_1.Enterprise],
+    entities: [Enterprises_1.Enterprise, ContentMessages_1.ContentMessages],
     migrations: [],
     subscribers: [],
 });

@@ -2,19 +2,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch TypeScript",
+            "name": "Launch Program",
             "type": "node",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/index.ts",  // Aponta diretamente para o arquivo TS
+            "program": "${workspaceFolder}/src/index.ts",
+            "preLaunchTask": "tsc: watch - tsconfig.json",
             "runtimeArgs": [
-                "-r", "ts-node/register"  // Usa ts-node para rodar o código TS
+                "--inspect-brk=9229"
             ],
-            "sourceMaps": true,  // Permite usar os mapas de origem para depuração
+            "sourceMaps": true,
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"  // Pasta de saída para arquivos JavaScript (se necessário)
+                "${workspaceFolder}/dist/**/*.js"
+            ],
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/dist/**/*.js",
+                "${workspaceFolder}/src/**/*.ts"
             ]
         }
     ]

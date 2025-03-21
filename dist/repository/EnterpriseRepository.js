@@ -2,11 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnterpriseRepository = void 0;
 const data_source_1 = require("../db/data-source");
-const CnpjMatriz_1 = require("../entities/CnpjMatriz");
+const Enterprises_1 = require("../entities/Enterprises");
 class EnterpriseRepository {
     repository;
     constructor() {
-        this.repository = data_source_1.AppdataSource.getRepository(CnpjMatriz_1.Enterprise);
+        this.repository = data_source_1.AppdataSource.getRepository(Enterprises_1.Enterprise);
     }
     async save(empresa) {
         if (!this.repository) {

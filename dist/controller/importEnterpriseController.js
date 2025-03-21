@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EnterpriseImportController = void 0;
 const EnterpriseRepository_1 = require("../repository/EnterpriseRepository");
-const CnpjMatriz_1 = require("../entities/CnpjMatriz");
+const Enterprises_1 = require("../entities/Enterprises");
 const fs = require("fs");
 const path = require("path");
 const schema_1 = require("../lib/schema");
@@ -25,7 +25,7 @@ class EnterpriseImportController {
                     return;
                 }
                 // Criando e preenchendo a entidade Empresa
-                const empresa = new CnpjMatriz_1.Enterprise();
+                const empresa = new Enterprises_1.Enterprise();
                 empresa.Nome = parsedData.data.Nome_Empresa;
                 empresa.Cnpj = parsedData.data.CNPJ ?? null; // Já vem limpo do schema
                 empresa.Sociedade = parsedData.data.Sociedade;

@@ -11,7 +11,7 @@ const main = async () => {
         server.register(routes_1.routes);
         server.register(routes_1.detRoutesLogin);
         server.register(procuracao_routes_1.detRoutes);
-        const port = 5014;
+        const port = 5016;
         server.listen({ port }, (err) => {
             if (err) {
                 server.log.error(err);
