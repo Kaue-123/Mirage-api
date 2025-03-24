@@ -1,9 +1,10 @@
 import axios from "axios";
+import sanitizeHtml from 'sanitize-html';
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
 import { limparCNPJ } from "./cnpjFormatado";
 import { ContentMessages } from "../entities/ContentMessages";
-import { Touchscreen } from "puppeteer";
+
 
 
 export class DetService {
@@ -25,7 +26,7 @@ export class DetService {
 
 
     setBearerToken(newToken: string) {
-        console.log(`🔄 Atualizando Bearer Token: ${this.bearerToken} → ${newToken}`);
+        console.log(`🔄 Atualizando Bearer Token: ${newToken}`);
         this.bearerToken = newToken;
     }
 
@@ -314,6 +315,19 @@ export class DetService {
         console.log(`Caixa_Postal atualizado para '${status}' no CNPJ: ${cnpj}`);
     }
 
+    
+    private cleanTextContent = (html: string) => {
+    return sanitizeHtml(html, {
+        allowedTags: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'a', 'strong', 'em'],  
+        allowedAttributes: {
+            'a': ['href'],
+            '*': ['style'],
+        }  
+        
+    });
+    
+};
+
     private async saveMessagesToDatabase(cnpj: string, mensagens: any[]) {
         const messageRepository = AppdataSource.getRepository(ContentMessages);
 
@@ -322,7 +336,12 @@ export class DetService {
             message.uid = msg.uid || null
             message.ni = cnpj;
             message.titulo = msg.titulo || null
-            message.texto = msg.conteudo || "Sem conteúdo disponível";
+
+            const sanitizedText = this.cleanTextContent(msg.conteudo || "Sem conteúdo disponível");
+            message.setTexto(sanitizedText)
+            
+            message.texto = sanitizedText
+            console.log('Conteúdo após sanitização:', sanitizedText)
             message.remetente = msg.remetente || "Desconhecido"
             message.tipo = msg.tipo || null
             message.situacao = msg.situacao || null
@@ -341,31 +360,7 @@ export class DetService {
         return messagesToSave;
     }
 }
-// async dadosCadastro(cnpjProcurado: string) {
-//     const cnpjEmpregador = limparCNPJ(cnpjProcurado);
-//     console.log(`Verificando dados de cadastro para o CNPJ: ${cnpjEmpregador}...`);
 
-//     const url = `/services/v1/empregadores/${cnpjEmpregador}?tipoConsulta=resumida`;
-//     const response = await this.makeRequest('GET', url);
-
-//     if (!response || typeof response !== 'object' || Object.keys(response).length === 0) {
-//         console.log(`Nenhum dado de cadastro encontrado para o CNPJ ${cnpjEmpregador}.`);
-//         return null;
-//     }
-//     const data = [
-//         {
-//             nome: response.data,
-//             email: response.data,
-//             telefone: response.data,
-//             origemCadastro: response.data
-//         }
-//     ]
-
-//     if (!data || data.length === 0) {
-//         console.log("Nenhum contato encontrado para cadastro.");
-//         return;
-//     }
-// }
 
 
 

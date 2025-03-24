@@ -4,6 +4,9 @@ import {
     Column,
 } from 'typeorm'
 
+import sanitizeHtml from 'sanitize-html';
+
+
 @Entity()
 export class ContentMessages {
 
@@ -47,8 +50,19 @@ export class ContentMessages {
     codigoNotificacao: string
 
     @Column({ nullable: true })
-    statusNotificacao: string
+    statusNotificacao: number
 
     @Column({ nullable: true })
     sistemaOrigem: string
+
+    
+    setTexto(texto: string) {
+
+        if (texto) {
+            this.texto = sanitizeHtml(texto); 
+            
+        }
+    }
+    
 }
+

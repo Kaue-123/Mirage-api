@@ -27,7 +27,7 @@ export class EnterpriseRepository {
     });
 
     return matrizes.find((matriz) =>
-      matriz.Cnpj.startsWith(cnpjBase) && matriz.Cnpj.includes("/0001-")
+      matriz.Cnpj.startsWith(cnpjBase) && matriz.Cnpj.includes("0001")
     );
   }
 
@@ -48,7 +48,7 @@ export class EnterpriseRepository {
 
 
       const matriz = matrizes.find(m =>
-        m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("/0001-")
+        m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("0001")
       );
 
       if (matriz) {
