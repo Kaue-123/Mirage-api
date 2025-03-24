@@ -1,6 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const fastify_1 = require("fastify");
+const fastify_1 = __importDefault(require("fastify"));
 const routes_1 = require("./routes/routes");
 const data_source_1 = require("./db/data-source");
 const procuracao_routes_1 = require("./routes/procuracao.routes");
@@ -11,7 +14,7 @@ const main = async () => {
         server.register(routes_1.routes);
         server.register(routes_1.detRoutesLogin);
         server.register(procuracao_routes_1.detRoutes);
-        const port = 5016;
+        const port = 5017;
         server.listen({ port }, (err) => {
             if (err) {
                 server.log.error(err);

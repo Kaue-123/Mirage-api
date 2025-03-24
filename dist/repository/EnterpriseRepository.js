@@ -21,7 +21,7 @@ class EnterpriseRepository {
         const matrizes = await this.repository.find({
             where: { Tipo: "Matriz" }
         });
-        return matrizes.find((matriz) => matriz.Cnpj.startsWith(cnpjBase) && matriz.Cnpj.includes("/0001-"));
+        return matrizes.find((matriz) => matriz.Cnpj.startsWith(cnpjBase) && matriz.Cnpj.includes("0001"));
     }
     async findAll() {
         return this.repository.find();
@@ -34,7 +34,7 @@ class EnterpriseRepository {
         const filiais = empresas.filter((e) => e.Tipo.toLowerCase() === "filial" && !!e.Cnpj);
         const updates = filiais.map(filial => {
             const cnpjBase = filial.Cnpj.substring(0, 10);
-            const matriz = matrizes.find(m => m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("/0001-"));
+            const matriz = matrizes.find(m => m.Cnpj.startsWith(cnpjBase) && m.Cnpj.includes("0001"));
             if (matriz) {
                 filial.id_matriz = matriz.id;
                 filial.matriz = matriz; // Relaciona o objeto completo da matriz, se necessário

@@ -27,7 +27,7 @@ class DetController {
             const cnpjsComMensagens = [];
             let cnpjProcessados = 0;
             const mensagensNaoLidasResumo = [];
-            const batchSize = 291; // Quantidade de CNPJs por lote
+            const batchSize = 2300; // Quantidade de CNPJs por lote
             const delay = 30000; // 30 segundos de delay para cada consulta por lote
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
                 const batch = cnpjsProcurados.slice(i, i + batchSize);
@@ -52,6 +52,7 @@ class DetController {
                     else if (servicosHabilitados.length === 5) {
                         console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para mensagens não lidas...`);
                         cnpjsComProcuracao.push(cnpjProcurado.Cnpj);
+                        await detService.verificarCadastro(cnpjProcurado.Cnpj);
                         const mensagensNaoLidas = await detService.mensagensNaoLidas(cnpjProcurado.Cnpj);
                         if (mensagensNaoLidas.quantidade > 0) {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} com mensagens não lidas.`);
