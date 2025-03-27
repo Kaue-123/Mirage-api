@@ -3,6 +3,7 @@ import { DataSource } from "typeorm";
 import { Enterprise } from "../entities/Enterprises";
 import { config } from "dotenv";
 import { ContentMessages } from "../entities/ContentMessages";
+import { Notifications } from "../entities/Notifications";
 
 config()
 
@@ -16,7 +17,7 @@ export const AppdataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: false,
-    entities: [Enterprise, ContentMessages],
+    entities: [Enterprise, ContentMessages, Notifications],
     migrations: [],
     subscribers: [],
     

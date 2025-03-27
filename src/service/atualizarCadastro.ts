@@ -1,7 +1,7 @@
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
 
-export async function atualizarCadastroEmpresa(cnpj: string) {
+export async function updateRegisterEnterprise(cnpj: string) {
     const repository = AppdataSource.getRepository(Enterprise);
 
     const empresa = await repository.findOne({

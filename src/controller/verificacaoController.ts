@@ -2,12 +2,6 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { DetService } from "../service/detService";
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
-import { atualizarCadastroEmpresa } from "../service/atualizarCadastro";
-
-
-const bearerToken = ""
-let refreshToken = ""
-
 
 // Função para aguardar um delay em milissegundos
 function sleep(ms: number) {
@@ -48,6 +42,12 @@ export class DetController {
                 for (const cnpjProcurado of batch) {
                     console.log(`Processando CNPJ: ${cnpjProcurado.Cnpj}`);
 
+
+                    // if (cnpjProcurado) {
+                    //     console.log("Esse cnpj ja foi consultado, passando para o proximo")
+                    //     continue
+                    // }
+                    
                     bearerToken = detService.getBearerToken();
                     console.log(`Bearer Token atual: ${bearerToken}`);
 
@@ -61,7 +61,7 @@ export class DetController {
                     // await atualizarCadastroEmpresa(cnpjProcurado.Cnpj)
 
 
-                    const servicosHabilitados = await detService.servicosHabilitados(cnpjProcurado);
+                    const servicosHabilitados = await detService.enableServices(cnpjProcurado);
                     if (servicosHabilitados.length === 0) {
                         console.log(`CNPJ ${cnpjProcurado.Cnpj} sem procuração.`);
 
@@ -73,9 +73,9 @@ export class DetController {
                         console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para mensagens não lidas...`);
                         cnpjsComProcuracao.push(cnpjProcurado.Cnpj);
 
-                        await detService.verificarCadastro(cnpjProcurado.Cnpj)      
+                        await detService.checkRegistration(cnpjProcurado.Cnpj)      
 
-                        const mensagensNaoLidas = await detService.mensagensNaoLidas(cnpjProcurado.Cnpj);
+                        const mensagensNaoLidas = await detService.unreadsMessages(cnpjProcurado.Cnpj);
 
                         if (mensagensNaoLidas.quantidade > 0) {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} com mensagens não lidas.`);
@@ -88,9 +88,9 @@ export class DetController {
                         } else {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} sem mensagens não lidas.`);
                         }
-                        const servicoAutorizado = await detService.servicosAutorizados(cnpjProcurado.Cnpj);
+                        const servicoAutorizado = await detService.authorizedService(cnpjProcurado.Cnpj);
 
-                        const caixaPostal = await detService.caixaPostal(cnpjProcurado.Cnpj, )
+                        const caixaPostal = await detService.mailBox(cnpjProcurado.Cnpj, )
 
                         resultados.push({
                             cnpj: cnpjProcurado.Cnpj,

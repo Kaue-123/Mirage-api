@@ -4,16 +4,13 @@ import {
     Column,
 } from 'typeorm'
 
-import sanitizeHtml from 'sanitize-html';
-
-
 @Entity()
 export class ContentMessages {
 
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
+    @Column()
     uid: string
 
     @Column({ name: "Cnpj" })
@@ -22,8 +19,8 @@ export class ContentMessages {
     @Column()
     titulo: string
 
-    @Column({ nullable: true })
-    texto: string
+    @Column('longtext', { nullable: true })
+    texto: string;
 
     @Column({ nullable: true })
     remetente: string
@@ -55,14 +52,5 @@ export class ContentMessages {
     @Column({ nullable: true })
     sistemaOrigem: string
 
-    
-    setTexto(texto: string) {
-
-        if (texto) {
-            this.texto = sanitizeHtml(texto); 
-            
-        }
-    }
-    
 }
 
