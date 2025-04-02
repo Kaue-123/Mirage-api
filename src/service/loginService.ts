@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export class LoginService {
     private certificadoCnpj = '34331182000103';
-    private bearerToken: string 
+    private bearerToken: string
     private apiUrl = process.env.BASE_URL;
 
     constructor() {
@@ -13,7 +13,7 @@ export class LoginService {
 
 
     async loginWithCertificate(): Promise<{ page: Page; bearerToken: string }> {
-      
+
         const browser = await puppeteer.launch({
             headless: false,
             executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -74,19 +74,19 @@ export class LoginService {
                         json: 1
                     }
                 });
-    
+
                 if (solutionResponse.status === 1) {
                     captchaToken = solutionResponse.request;
                     break;
                 }
             }
-    
+
             if (!captchaToken) {
                 console.error("Token do captcha não encontrado");
                 throw new Error("Falha ao resolver captcha");
             }
-    
-    
+
+
             await new Promise(resolve => setTimeout(resolve, 1000));
             await page.evaluate((captchaToken) => {
                 const captchaInput = document.querySelector('[name="h-captcha-response"]') as HTMLInputElement;
@@ -128,14 +128,14 @@ export class LoginService {
             });
             setTimeout(() => {
                 reject(new Error("Bearer Token não capturado após login"));
-            }, 10000); 
+            }, 10000);
         });
         if (!this.bearerToken) {
             throw new Error("Bearer Token não capturado após login");
         }
         return { page, bearerToken: this.bearerToken };
     }
-    getBearerToken(): string { 
+    getBearerToken(): string {
         return this.bearerToken;
     }
 }

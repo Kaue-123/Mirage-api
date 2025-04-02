@@ -29,11 +29,16 @@ export class DetController {
             const resultados = [];
             const cnpjsComProcuracao = [];
             const cnpjsComMensagens = [];
+            const cnpjsCadastrados = [];
+            const mensagensNaoLidasResumo = []
+
             let cnpjProcessados = 0
 
-            const mensagensNaoLidasResumo = []
-            const batchSize = 2300; // Quantidade de CNPJs por lote
+            const batchSize = 2300 
+            // 2300; // Quantidade de CNPJs por lote
             const delay = 30000; // 30 segundos de delay para cada consulta por lote
+
+            // const cnpjJaConsultado = new Set<string>()
 
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
                 const batch = cnpjsProcurados.slice(i, i + batchSize);
@@ -43,11 +48,13 @@ export class DetController {
                     console.log(`Processando CNPJ: ${cnpjProcurado.Cnpj}`);
 
 
-                    // if (cnpjProcurado) {
-                    //     console.log("Esse cnpj ja foi consultado, passando para o proximo")
-                    //     continue
-                    // }
-                    
+                    //  if (cnpjJaConsultado.has(cnpjProcurado.Cnpj)) {
+                    //      console.log("Esse cnpj ja foi consultado, passando para o proximo")
+                    //      continue
+                    //  }
+
+                    //  cnpjJaConsultado.add(cnpjProcurado.Cnpj)
+
                     bearerToken = detService.getBearerToken();
                     console.log(`Bearer Token atual: ${bearerToken}`);
 
@@ -73,7 +80,23 @@ export class DetController {
                         console.log(`CNPJ ${cnpjProcurado.Cnpj} com procuração. Seguindo para mensagens não lidas...`);
                         cnpjsComProcuracao.push(cnpjProcurado.Cnpj);
 
-                        await detService.checkRegistration(cnpjProcurado.Cnpj)      
+
+
+                        const resultadoCadastro = await detService.checkRegistration(cnpjProcurado.Cnpj);
+
+                        
+                        if (resultadoCadastro?.error) {
+                            console.log(`Erro ao tentar cadastrar CNPJ ${cnpjProcurado.Cnpj}, pulando para o próximo cnpj`)
+                            continue  // Armazena os CNPJs que foram cadastrados
+                        }
+
+                        if (resultadoCadastro?.NiOutorgante) {
+                            console.log(`CNPJ ${cnpjProcurado.Cnpj} já estava cadastrado ou foi cadastrado agora.`)
+                            cnpjsCadastrados.push(cnpjProcurado.Cnpj)
+                        } else {
+                            console.log(`Erro no cadastro do CNPJ ${cnpjProcurado.Cnpj}`)
+                            continue
+                        }
 
                         const mensagensNaoLidas = await detService.unreadsMessages(cnpjProcurado.Cnpj);
 

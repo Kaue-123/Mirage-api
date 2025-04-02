@@ -1,5 +1,5 @@
 import fastify from 'fastify';
-import { routes } from './routes/routes';
+import { detVerificarProcuracao, detRoutesLogin, routes } from './routes/routes';
 import { AppdataSource } from './db/data-source';
 
 
@@ -11,9 +11,12 @@ const main = async () => {
     .then(async () => {
         
         server.register(routes);
+        server.register(detRoutesLogin);
+        server.register(detVerificarProcuracao);
+        
     
         
-        const port = 5017;
+        const port = 5020;
         server.listen({ port }, (err)  => {
             if (err) {
                 server.log.error(err);

@@ -1,16 +1,21 @@
 import axios from "axios";
-import sanitizeHtml from 'sanitize-html';
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
 import { cleanCNPJ } from "./replaceCNPJ/cnpjFormatado";
-import { ContentMessages } from "../entities/ContentMessages";
-import { Notifications } from "../entities/Notifications";
+
+import { UpdateEnterprise } from "../repository/updateEnterpriseRepository";
+
+import { SaveMessagesService } from "./SaveContent/saveMessages";
+import { SaveNotificationsService } from "./SaveContent/saveNotifications";
 
 
 
 export class DetService {
     private apiUrl = process.env.BASE_URL;
     private certificadoCnpj = '34331182000103';
+    private updateEnterprise = new UpdateEnterprise()
+    private saveMessages = new SaveMessagesService()
+    private saveNotification = new SaveNotificationsService()
 
     private async getCnpjsFromDatabase(): Promise<Enterprise[]> {
         const cnpjRepository = await AppdataSource.getRepository(Enterprise);
@@ -24,7 +29,6 @@ export class DetService {
     getBearerToken() {
         return this.bearerToken;
     }
-
 
     setBearerToken(newToken: string) {
         console.log(`Atualizando Bearer Token: ${newToken}`);
@@ -174,25 +178,21 @@ export class DetService {
         }
     }
 
-
-
-
     async empregadores(cnpjProcurado: string) {
         const cnpjEmpregador = cleanCNPJ(cnpjProcurado);
         console.log(`Cadastrando empresa para o CNPJ: ${cnpjEmpregador}...`);
 
 
         const data = {
-            tipoNI: 0,
-            ni: cnpjEmpregador,
-            PerfilProcuracao: 3,
-            origemCadastro: 0,
             enviarMensagemResponsavel: false,
+            ni: cnpjEmpregador,
+            origemCadastro: 0,
             palavraChave: "JEITO CYRELA DE SER",
-            contatos: [  // Array de contatos dentro do objeto principal
+            tipoNI: 0,
+            contatos: [
                 {
-                    nome: "KRS Calculo",
                     email: "det.cyrela@krscalculos.com.br",
+                    nome: "KRS Calculo",
                     origemCadastro: 0,
                     telefone: "1129672888",
                 }
@@ -223,6 +223,30 @@ export class DetService {
         }
     }
 
+
+    async resultRegistration(cnpjProcurado: string) {
+        const cnpjEmpregador = cleanCNPJ(cnpjProcurado)
+        console.log(`Verificando se consulta resumida retorna o objeto do cadastro para o CNPJ: ${cnpjEmpregador}...`)
+
+        const url = `/services/v1/empregadores/${cnpjEmpregador}?tipoConsulta=resumida`
+
+        try {
+            const response = await this.makeRequest("GET", url)
+
+            if (response && typeof response === "object" && Object.keys(response).length > 0) {
+                console.log(`Dados cadastrais atribuidos para o CNPJ: ${cnpjEmpregador}`)
+                return response
+
+            } else {
+                console.log(`Dados inesperados pelo objeto ao cadastrar CNPJ: ${cnpjEmpregador} como empregador no DET`)
+                return null
+            }
+        } catch (error) {
+            console.error(`Erro ao consultar os dados para o CNPJ: ${cnpjEmpregador}`, error)
+            return { error: "Erro ao consultar os dados do cadastro" }
+        }
+
+    }
     // Verifica se há mensagens não lidas na caixa postal do empregador (Retorna para ambos os CNPJ's)
     async unreadsMessages(cnpjProcurado: string) {
         const cnpjEmpregador = cleanCNPJ(cnpjProcurado);
@@ -239,12 +263,12 @@ export class DetService {
             console.log(`Aviso: O CNPJ: ${cnpjEmpregador} tem ${quantidadeMensagem} mensagens não lidas.`);
 
 
-            await this.updateMailBox(cnpjEmpregador, "S");
+            await this.updateEnterprise.updateMailBox(cnpjEmpregador, "S");
         } else {
             console.log(`Nenhuma nova mensagem para o CNPJ: ${cnpjEmpregador}.`);
 
 
-            await this.updateMailBox(cnpjEmpregador, "N");
+            await this.updateEnterprise.updateMailBox(cnpjEmpregador, "N");
         }
 
         return { quantidade: quantidadeMensagem };
@@ -271,9 +295,6 @@ export class DetService {
         }
     }
 
-
-
-
     async mailBox(cnpjProcurado: string) {
         const cnpjEmpregador = cleanCNPJ(cnpjProcurado);
         console.log(`Consultando caixa postal do CNPJ: ${cnpjEmpregador}...`);
@@ -297,137 +318,30 @@ export class DetService {
 
         const numeroMensagens = response.length
         console.log(`Foram encontradas ${numeroMensagens} mensagens para o CNPJ: ${cnpjEmpregador}. Armazenando...`)
-        return await this.saveMessagesToDatabase(cnpjEmpregador, response);
+        return await this.saveMessages.saveMessagesToDatabase(cnpjEmpregador, response);
     }
 
 
-     async notifications(cnpjProcurado: string) {
-         const cnpjEmpregador = cleanCNPJ(cnpjProcurado)
-         console.log(`Consultando notificações do CNPJ: ${cnpjEmpregador}...`);
+    async notifications(cnpjProcurado: string) {
+        const cnpjEmpregador = cleanCNPJ(cnpjProcurado)
+        console.log(`Consultando notificações do CNPJ: ${cnpjEmpregador}...`);
 
-         const url = `services/empregador/v1/notificacoes?tipoNi=0&ni=${cnpjEmpregador}`
-         const response = await this.makeRequest('GET', url, cnpjProcurado)
+        const url = `services/empregador/v1/notificacoes?tipoNi=0&ni=${cnpjEmpregador}`
+        const response = await this.makeRequest('GET', url, cnpjProcurado)
 
-         if (!response) {
-             console.warn(`Acesso inválido para rota de notificações do CNPj: ${cnpjEmpregador}`)
-             return null;
-         }
+        if (!response) {
+            console.warn(`Acesso inválido para rota de notificações do CNPj: ${cnpjEmpregador}`)
+            return null;
+        }
 
-         if (!Array.isArray(response)) {
-             console.error(`Erro: resposta inesperada da API para o CNPJ: ${cnpjEmpregador}`, response)
-             return null
-         }
+        if (!Array.isArray(response)) {
+            console.error(`Erro: resposta inesperada da API para o CNPJ: ${cnpjEmpregador}`, response)
+            return null
+        }
 
-         const numeroNotificacoes = response.length
-         console.log(`Foram encontradas ${numeroNotificacoes} notificações para o CNPJ: ${cnpjEmpregador}. Armazenando...`)
-         return await this.saveNotificacoesToDatabase(cnpjEmpregador, response)
-     }
-
-
-    async updateMailBox(cnpj: string, status: "S" | "N") {
-        await AppdataSource.getRepository(Enterprise)
-            .createQueryBuilder()
-            .update("enterprise")
-            .set(
-                { Caixa_Postal: status }
-            )
-            .where("CNPJ = :cnpj",
-                { cnpj }
-            )
-            .execute();
-
-        console.log(`Caixa_Postal atualizado para '${status}' no CNPJ: ${cnpj}`);
-    }
-
-
-    private cleanTextContent = (html: string) => {
-        let sanitizedText = sanitizeHtml(html, {
-            allowedTags: ['b', 'i', 'u', 'p', 'br', 'ul', 'ol', 'li', 'a', 'strong', 'em', ''],
-            allowedAttributes: {
-                a: ['href', 'name', 'target'],
-                '*': ['style'],
-            },
-            disallowedTagsMode: ' ',
-            allowedSchemes: ['http', 'https']
-        });
-
-        sanitizedText = sanitizedText.replace(/\n/g, '<br>');
-        sanitizedText = sanitizedText.replace(/[\n\t\r]+/g, ' ');
-        sanitizedText = sanitizedText.replace(/\s+/g, ' ').trim();
-
-        return sanitizedText;
-    };
-
-    private async saveMessagesToDatabase(cnpj: string, mensagens: any[]) {
-        const messageRepository = AppdataSource.getRepository(ContentMessages);
-
-        const messagesToSave = mensagens.map((msg) => {
-            const message = new ContentMessages();
-            message.uid = msg.uid || null
-            message.ni = cnpj;
-            message.titulo = msg.titulo || null
-
-            // const sanitizedText = this.cleanTextContent(msg.texto || "Sem conteúdo disponível");
-            message.texto = this.cleanTextContent(msg.texto || "Sem conteudo disponivel")
-
-
-            message.remetente = msg.remetente || "Desconhecido"
-            message.tipo = msg.tipo || null
-            message.situacao = msg.situacao || null
-            message.arquivada = msg.arquivada || null
-            message.dataHoraLeitura = new Date(msg.dataEnvio || Date.now());
-            message.dataHoraCriacao = new Date(msg.dataEnvio || Date.now());
-            message.dataHoraLeituraDeCursoPrazo = new Date(msg.dataEnvio || Date.now());
-            message.codigoNotificacao = msg.codigoNotificacao || null
-            message.statusNotificacao = msg.statusNotificacao || null
-            message.sistemaOrigem = msg.sistemaOrigem || null
-            return message;
-        });
-
-        await messageRepository.save(messagesToSave);
-        console.log(`Mensagens armazenadas no banco para o CNPJ: ${cnpj}`);
-        return messagesToSave;
-    }
-
-    private async saveNotificacoesToDatabase(ni: string, notificacoes: any[]) {
-        const notificacoesRepository = AppdataSource.getRepository(Notifications);
-
-        const saveNotifications = notificacoes.map((msg) => {
-            const notifications = new Notifications()
-            notifications.codigo = msg.codigo
-            notifications.ri = msg.ri
-            notifications.cpfAuditor = msg.cpfAuditor
-            notifications.tipoGeracao = msg.tipoGeracao
-            notifications.tipoAbrangencia = msg.tipoAbrangencia
-            notifications.titulo = msg.titulo
-            notifications.status = msg.status
-            notifications.tipoNi = msg.tipoNI
-            notifications.ni = msg.ni
-            notifications.dataEnvio = msg.dataEnvio
-            notifications.estabelecimentos = msg.estabelecimentos
-            notifications.enderecos = msg.enderecos
-            notifications.contatos = msg.contatos
-            notifications.auditores = msg.auditores
-            notifications.observacoes = msg.observacoes
-            notifications.entregas = msg.entregas
-            notifications.itens = msg.itens
-            notifications.rascunho = msg.rascunho
-            notifications.uid = msg.uid
-            notifications.rascunhoArquivoUri = msg.rascunhoArquivoUri
-            notifications.dataPrazoEntregaPadrao = msg.dataPrazoEntregaPadrao
-            notifications.dataPeriodoInicioPadrao = msg.dataPeriodoInicioPadrao
-            notifications.dataPeriodoFimPadrao = msg.dataPeriodoFimPadrao
-            notifications.textosInformativosPadraoAtivos = msg.textosInformativosPadraoAtivos
-            notifications.itemDataProximaEntrega = msg.itemDataProximaEntrega
-            notifications.itemAlertaEmpregador = msg.itemAlertaEmpregador
-            notifications.updatedAt = msg.updatedAt
-            notifications.clientId = msg.clientId
-            notifications.horaPrazoEntregaPadrao = msg.horaPrazoEntregaPadrao
-            return notifications
-        });
-        await notificacoesRepository.save(saveNotifications);
-        console.log(`Mensagens armazenadas no banco para o CNPJ: ${ni}`);
-        return saveNotifications;
+        const numeroNotificacoes = response.length
+        console.log(`Foram encontradas ${numeroNotificacoes} notificações para o CNPJ: ${cnpjEmpregador}. Armazenando...`)
+        return await this.saveNotification.saveToDataBase([cnpjEmpregador])
     }
 }
 

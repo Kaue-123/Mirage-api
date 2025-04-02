@@ -10,7 +10,7 @@ export class ContentMessages {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ unique: true })
     uid: string
 
     @Column({ name: "Cnpj" })
