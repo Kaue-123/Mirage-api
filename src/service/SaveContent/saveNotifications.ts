@@ -1,6 +1,7 @@
 import { Repository } from "typeorm";
 import { AppdataSource } from "../../db/data-source";
 import { Notifications } from "../../entities/Notifications";
+import { Enterprise } from "../../entities/Enterprises";
 
 
 export class SaveNotificationsService {
@@ -10,9 +11,16 @@ export class SaveNotificationsService {
         this.notificationRepository = AppdataSource.getRepository(Notifications);
     }
 
-    async saveToDataBase(data: any[]): Promise<Notifications[]> {
+    async saveToDataBase(cnpj: string, data: any[]): Promise<Notifications[]> {
         const saveData: Notifications[] = [];
 
+        const enterpriseRepository = AppdataSource.getRepository(Enterprise)
+
+        const enterprise = await enterpriseRepository.findOne({ 
+            where: {
+                Cnpj: cnpj
+            }
+        })
         for (const msg of data) {
             const existingNotification = await this.notificationRepository.findOne({
                 where: {
@@ -34,7 +42,7 @@ export class SaveNotificationsService {
                     tipoAbrangencia: msg.tipoAbrangencia,
                     titulo: msg.titulo,
                     status: msg.status,
-                    tipoNi: msg.tipoNI,
+                    tipoNi: msg.tipoNI ?? 0,
                     ni: msg.ni,
                     dataEnvio: msg.dataEnvio ? new Date(msg.dataEnvio): null,
                     estabelecimentos: msg.estabelecimentos || null,
@@ -52,10 +60,11 @@ export class SaveNotificationsService {
                     dataPeriodoFimPadrao: msg.dataPeriodoFimPadrao ? new Date(msg.dataPeriodoFimPadrao): null,
                     textosInformativosPadraoAtivos: msg.textosInformativosPadraoAtivos || null,
                     itemDataProximaEntrega: msg.itemDataProximaEntrega || null,
-                    itemAlertaEmpregador: msg.itemAlertaEmpregador || null,
+                    itemAlertaEmpregador: msg.itemAlertaEmpregador ,
                     updatedAt: msg.updatedAt || null,
                     clientId: msg.clientId || null,
-                    horaPrazoEntregaPadrao: msg.horaPrazoEntregaPadrao || null
+                    horaPrazoEntregaPadrao: msg.horaPrazoEntregaPadrao || null,
+                    // enterprise: enterprise
                 })
 
                 const savedContent = await this.notificationRepository.save(newNotification)
