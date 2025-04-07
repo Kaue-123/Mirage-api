@@ -1,8 +1,35 @@
-/*
 
+
+CONCLUIDO
+*/
     Criar uma tabela nova para as mensagens;
     Armazenar o conteúdo dessas mensagens na tabela do banco de dados, e relacionar com o id do cnpj;
     Corrigir função para cadastro do CNPJ empregador;
     Atribuir refresh token a cada requisição de novo CNPJ buscado;
-
 /*
+
+
+CONCLUIDO
+*/
+    Corrigir função para salvar mensagem no banco de dados: {
+        1 - Identificar se a mensagem ou notificação possui o mesmo unique ID, se possuir, não armazenar e passar para o próximo. (A repetição deve ocorrer do fato de empresas possuirem 
+        parcerias 'SCP' atribuidos a um único CNPJ responsável
+        )
+
+        2 - Corrigir a função de salvar notificação para armazenar corretamente no banco de dados.
+    } 
+/*
+
+
+*/ 
+    Criar um JOB para acessar o DET, após a finalização da verificação feita pelo controller. Esse job vai abrir o det com o puppeter
+    e entrar no perfil do CNPJ outorgado com mensagem nova.
+        Após o acesso, manipular puppeteer para baixar o PDF e armazenar em um diretório no local.
+/*
+
+
+CONCLUIDO
+*/
+    Associar os cnpj's armazenados nas tabelas de notificações e mensagens da caixa postal, com os cnpj's da tabela principal que armazena todos os clientes.
+        Adicionar uma foreing Key responsável por essa identificação e comparação dos cnpj's
+*/

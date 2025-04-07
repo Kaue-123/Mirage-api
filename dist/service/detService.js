@@ -5,15 +5,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DetService = void 0;
 const axios_1 = __importDefault(require("axios"));
-const sanitize_html_1 = __importDefault(require("sanitize-html"));
 const data_source_1 = require("../db/data-source");
 const Enterprises_1 = require("../entities/Enterprises");
-const cnpjFormatado_1 = require("./cnpjFormatado");
-const ContentMessages_1 = require("../entities/ContentMessages");
+const cnpjFormatado_1 = require("./replaceCNPJ/cnpjFormatado");
+const updateEnterpriseRepository_1 = require("../repository/updateEnterpriseRepository");
+const saveMessages_1 = require("./SaveContent/saveMessages");
+const saveNotifications_1 = require("./SaveContent/saveNotifications");
 class DetService {
     bearerToken;
     apiUrl = process.env.BASE_URL;
     certificadoCnpj = '34331182000103';
+    updateEnterprise = new updateEnterpriseRepository_1.UpdateEnterprise();
+    saveMessages = new saveMessages_1.SaveMessagesService();
+    saveNotification = new saveNotifications_1.SaveNotificationsService();
     async getCnpjsFromDatabase() {
         const cnpjRepository = await data_source_1.AppdataSource.getRepository(Enterprises_1.Enterprise);
         return await cnpjRepository.find();
@@ -27,7 +31,7 @@ class DetService {
         return this.bearerToken;
     }
     setBearerToken(newToken) {
-        console.log(`🔄 Atualizando Bearer Token: ${this.bearerToken} /\ ${newToken}`);
+        console.log(`Atualizando Bearer Token: ${newToken}`);
         this.bearerToken = newToken;
     }
     async start() {
@@ -40,14 +44,14 @@ class DetService {
             }
             for (const cnpjProcurado of cnpjsProcurados) {
                 console.log(`Processando CNPJ Procurado: ${cnpjProcurado.Cnpj}`);
-                this.NiOutorgante = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado.Cnpj);
-                await this.verificarCadastro(cnpjProcurado.Cnpj);
-                const servicosHabilitados = await this.servicosHabilitados(cnpjProcurado);
+                this.NiOutorgante = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado.Cnpj);
+                await this.checkRegistration(cnpjProcurado.Cnpj);
+                const servicosHabilitados = await this.enableServices(cnpjProcurado);
                 if (!servicosHabilitados) {
                     console.log(`Nenhum serviço habilitado encontrado para o CNPJ ${cnpjProcurado.Cnpj}. Pulando...`);
                     continue;
                 }
-                await this.mensagensNaoLidas(cnpjProcurado.Cnpj);
+                await this.unreadsMessages(cnpjProcurado.Cnpj);
                 console.log(`Processamento finalizado para o CNPJ Procurado: ${cnpjProcurado.Cnpj}`);
             }
         }
@@ -97,9 +101,9 @@ class DetService {
         }
     }
     // Verifia se os serviços estão habilitados para o CNPJ procurado (Retorna para ambos os CNPJ's)
-    async servicosHabilitados(cnpjProcurado) {
+    async enableServices(cnpjProcurado) {
         console.log(`Verificando serviços habilitados para o CNPJ procurado: ${cnpjProcurado.Cnpj}...`);
-        const cnpjFormatado = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado.Cnpj);
+        const cnpjFormatado = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado.Cnpj);
         const servicosHabilitados = await this.makeRequest('GET', `/services/v1/procuracoes/servicos-habilitados/${this.certificadoCnpj}/${cnpjFormatado}`);
         if (servicosHabilitados && servicosHabilitados.length > 0) {
             console.log(`Serviços habilitados encontrados para o CNPJ ${cnpjFormatado}:`, servicosHabilitados);
@@ -114,8 +118,8 @@ class DetService {
             return [];
         }
     }
-    async verificarCadastro(cnpjProcurado) {
-        const cnpjEmpregador = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado);
+    async checkRegistration(cnpjProcurado) {
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
         console.log(`Verificando cadastro do CNPJ: ${cnpjEmpregador}...`);
         this.PerfilProcuracao = "3";
         this.NiOutorgante = cnpjEmpregador;
@@ -147,19 +151,18 @@ class DetService {
         }
     }
     async empregadores(cnpjProcurado) {
-        const cnpjEmpregador = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado);
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
         console.log(`Cadastrando empresa para o CNPJ: ${cnpjEmpregador}...`);
         const data = {
-            tipoNI: 0,
-            ni: cnpjEmpregador,
-            PerfilProcuracao: 3,
-            origemCadastro: 0,
             enviarMensagemResponsavel: false,
+            ni: cnpjEmpregador,
+            origemCadastro: 0,
             palavraChave: "JEITO CYRELA DE SER",
+            tipoNI: 0,
             contatos: [
                 {
-                    nome: "KRS Calculo",
                     email: "det.cyrela@krscalculos.com.br",
+                    nome: "KRS Calculo",
                     origemCadastro: 0,
                     telefone: "1129672888",
                 }
@@ -188,9 +191,29 @@ class DetService {
             return null;
         }
     }
+    async resultRegistration(cnpjProcurado) {
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
+        console.log(`Verificando se consulta resumida retorna o objeto do cadastro para o CNPJ: ${cnpjEmpregador}...`);
+        const url = `/services/v1/empregadores/${cnpjEmpregador}?tipoConsulta=resumida`;
+        try {
+            const response = await this.makeRequest("GET", url);
+            if (response && typeof response === "object" && Object.keys(response).length > 0) {
+                console.log(`Dados cadastrais atribuidos para o CNPJ: ${cnpjEmpregador}`);
+                return response;
+            }
+            else {
+                console.log(`Dados inesperados pelo objeto ao cadastrar CNPJ: ${cnpjEmpregador} como empregador no DET`);
+                return null;
+            }
+        }
+        catch (error) {
+            console.error(`Erro ao consultar os dados para o CNPJ: ${cnpjEmpregador}`, error);
+            return { error: "Erro ao consultar os dados do cadastro" };
+        }
+    }
     // Verifica se há mensagens não lidas na caixa postal do empregador (Retorna para ambos os CNPJ's)
-    async mensagensNaoLidas(cnpjProcurado) {
-        const cnpjEmpregador = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado);
+    async unreadsMessages(cnpjProcurado) {
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
         console.log(`Verificando mensagens não lidas para o CNPJ: ${cnpjEmpregador}...`);
         const url = `/services/v1/caixapostal/${cnpjEmpregador}/nao-lidas`;
         const response = await this.makeRequest('GET', url);
@@ -198,18 +221,18 @@ class DetService {
         console.log("Resposta da requisição:", quantidadeMensagem);
         if (quantidadeMensagem > 0) {
             console.log(`Aviso: O CNPJ: ${cnpjEmpregador} tem ${quantidadeMensagem} mensagens não lidas.`);
-            await this.atualizarCaixaPostal(cnpjEmpregador, "S");
+            await this.updateEnterprise.updateMailBox(cnpjEmpregador, "S");
         }
         else {
             console.log(`Nenhuma nova mensagem para o CNPJ: ${cnpjEmpregador}.`);
-            await this.atualizarCaixaPostal(cnpjEmpregador, "N");
+            await this.updateEnterprise.updateMailBox(cnpjEmpregador, "N");
         }
         return { quantidade: quantidadeMensagem };
     }
     // Serviços Autorizados, é o acesso da caixa postal do empregador. Sendo true, o acesso retorna a rota da caixa postal (Retorna apenas para os CNPJ's que possuem procuração)
-    async servicosAutorizados(cnpjProcurado) {
+    async authorizedService(cnpjProcurado) {
         const cnpjCertificado = this.certificadoCnpj;
-        const cnpjEmpregador = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado);
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
         const url = `/services/v1/procuracoes/servico-autorizado/${cnpjCertificado}/${cnpjEmpregador}/DET0003`;
         const response = await this.makeRequest('GET', url);
         if (response === true || response === 'true') {
@@ -221,8 +244,8 @@ class DetService {
             return null;
         }
     }
-    async caixaPostal(cnpjProcurado) {
-        const cnpjEmpregador = (0, cnpjFormatado_1.limparCNPJ)(cnpjProcurado);
+    async mailBox(cnpjProcurado) {
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
         console.log(`Consultando caixa postal do CNPJ: ${cnpjEmpregador}...`);
         const url = `/services/v1/caixapostal/${cnpjEmpregador}`;
         const response = await this.makeRequest("GET", url, cnpjProcurado);
@@ -237,46 +260,27 @@ class DetService {
         console.log("Resposta bruta da API:", JSON.stringify(response, null, 2));
         const numeroMensagens = response.length;
         console.log(`Foram encontradas ${numeroMensagens} mensagens para o CNPJ: ${cnpjEmpregador}. Armazenando...`);
-        return await this.saveMessagesToDatabase(cnpjEmpregador, response);
+        return await this.saveMessages.saveMessagesToDatabase(cnpjEmpregador, response);
     }
-    async atualizarCaixaPostal(cnpj, status) {
-        await data_source_1.AppdataSource.getRepository(Enterprises_1.Enterprise)
-            .createQueryBuilder()
-            .update("enterprise")
-            .set({ Caixa_Postal: status })
-            .where("CNPJ = :cnpj", { cnpj })
-            .execute();
-        console.log(`Caixa_Postal atualizado para '${status}' no CNPJ: ${cnpj}`);
-    }
-    async saveMessagesToDatabase(cnpj, mensagens) {
-        const messageRepository = data_source_1.AppdataSource.getRepository(ContentMessages_1.ContentMessages);
-        const messagesToSave = mensagens.map((msg) => {
-            const message = new ContentMessages_1.ContentMessages();
-            message.uid = msg.uid || null;
-            message.ni = cnpj;
-            message.titulo = msg.titulo || null;
-            const sanitizedText = (0, sanitize_html_1.default)(msg.conteudo || "Sem conteúdo disponível", {
-                allowedTags: [],
-                allowedAttributes: {
-                    a: ['href'], // Permitir apenas 'href' nos links
-                },
-            });
-            message.texto = sanitizedText || "Sem conteúdo disponível";
-            message.remetente = msg.remetente || "Desconhecido";
-            message.tipo = msg.tipo || null;
-            message.situacao = msg.situacao || null;
-            message.arquivada = msg.arquivada || null;
-            message.dataHoraLeitura = new Date(msg.dataEnvio || Date.now());
-            message.dataHoraCriacao = new Date(msg.dataEnvio || Date.now());
-            message.dataHoraLeituraDeCursoPrazo = new Date(msg.dataEnvio || Date.now());
-            message.codigoNotificacao = msg.codigoNotificacao || null;
-            message.statusNotificacao = msg.statusNotificacao || null;
-            message.sistemaOrigem = msg.sistemaOrigem || null;
-            return message;
-        });
-        await messageRepository.save(messagesToSave);
-        console.log(`Mensagens armazenadas no banco para o CNPJ: ${cnpj}`);
-        return messagesToSave;
+    async notifications(cnpjProcurado) {
+        const cnpjEmpregador = (0, cnpjFormatado_1.cleanCNPJ)(cnpjProcurado);
+        console.log(`Consultando notificações do CNPJ: ${cnpjEmpregador}...`);
+        const url = `/services/empregador/v1/notificacoes?tipoNi=0&ni=${cnpjEmpregador}`;
+        const response = await this.makeRequest('GET', url, cnpjProcurado);
+        if (!response) {
+            console.warn(`Acesso inválido para rota de notificações do CNPj: ${cnpjEmpregador}`);
+            return null;
+        }
+        if (!Array.isArray(response)) {
+            console.error(`Erro: resposta inesperada da API para o CNPJ: ${cnpjEmpregador}`, response);
+            return null;
+        }
+        if (response.length === 0) {
+            console.log(`Nenhuma notificação encontrada para o CNPJ: ${cnpjEmpregador}.`);
+            return null;
+        }
+        console.log(`Foram encontradas ${response.length} notificações para o CNPJ: ${cnpjEmpregador}. Armazenando...`);
+        return await this.saveNotification.saveToDataBase(cnpjEmpregador, response);
     }
 }
 exports.DetService = DetService;

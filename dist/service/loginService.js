@@ -24,8 +24,8 @@ class LoginService {
                 '--ignore-certificate-errors',
                 '--allow-running-insecure-content',
                 '--auto-select-certificate-for-urls={"pattern":"https://det.sit.trabalho.gov.br","filter":{}}',
-                '--ssl-client-cert-file=C:\\Users\\Kaue\\Documentos\\Certificados\\cert.pem',
-                '--ssl-client-key-file=C:\\Users\\Kaue\\Documentos\\Certificados\\key.pem',
+                '--ssl-client-cert-file=C:\Users\Kaue\Certificados\cert.pem',
+                '--ssl-client-key-file=C:C:\Users\Kaue\Certificados\key.pem',
                 '--ssl-client-key-passphrase=27713412808'
             ],
             defaultViewport: { width: 1360, height: 768 },

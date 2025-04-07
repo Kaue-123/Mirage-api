@@ -6,6 +6,7 @@ const typeorm_1 = require("typeorm");
 const Enterprises_1 = require("../entities/Enterprises");
 const dotenv_1 = require("dotenv");
 const ContentMessages_1 = require("../entities/ContentMessages");
+const Notifications_1 = require("../entities/Notifications");
 (0, dotenv_1.config)();
 exports.AppdataSource = new typeorm_1.DataSource({
     type: "mysql",
@@ -16,7 +17,7 @@ exports.AppdataSource = new typeorm_1.DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: false,
-    entities: [Enterprises_1.Enterprise, ContentMessages_1.ContentMessages],
+    entities: [Enterprises_1.Enterprise, ContentMessages_1.ContentMessages, Notifications_1.Notifications],
     migrations: [],
     subscribers: [],
 });
