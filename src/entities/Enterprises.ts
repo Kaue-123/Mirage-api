@@ -6,21 +6,23 @@ import {
     JoinColumn,
     OneToMany
 } from 'typeorm';
+import { ContentMessages } from './ContentMessages';
+import { Notifications } from './Notifications';
 @Entity()
 export class Enterprise {
     @PrimaryGeneratedColumn()
     id: number;
-    
+
     @Column({ nullable: true })
     id_matriz: number;
-    
+
     @Column({ nullable: true })
     Nome: string;
-    
+
     @Column({ nullable: true })
     Cnpj: string;
 
-    @Column({ nullable: true})
+    @Column({ nullable: true })
     Tipo: string;
 
     @Column({ nullable: true })
@@ -31,12 +33,12 @@ export class Enterprise {
 
     @Column({ nullable: true })
     Procuracao: string;
-    
+
     @Column({ nullable: true })
     Gestao: string;
 
     @Column({ nullable: true })
-    Data_Outorga: Date; 
+    Data_Outorga: Date;
 
     @Column({ nullable: true })
     Caixa_Postal: string;
@@ -54,4 +56,10 @@ export class Enterprise {
 
     @OneToMany(() => Enterprise, (filial) => filial.matriz)
     filiais: Enterprise[];
+
+    @OneToMany(() => ContentMessages, (contentMessages) => contentMessages.enterprise, { cascade: true })
+    contentMessages: ContentMessages[]
+
+    // @OneToMany(() => Notifications, (notification) => notification.enterprise, { cascade: true })
+    // notification: Notification[]
 }

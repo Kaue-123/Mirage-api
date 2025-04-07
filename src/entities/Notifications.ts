@@ -1,8 +1,11 @@
-import { 
+import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
+    JoinColumn,
+    ManyToOne,
 } from 'typeorm'
+import { Enterprise } from './Enterprises'
 
 @Entity()
 
@@ -32,7 +35,7 @@ export class Notifications {
     @Column()
     status: number
 
-    @Column()
+    @Column({ default: 0 })
     tipoNi: number
 
     @Column()
@@ -97,4 +100,8 @@ export class Notifications {
 
     @Column({ type: "timestamp", nullable: true })
     horaPrazoEntregaPadrao: Date
+
+    // @ManyToOne(() => Enterprise, (enterprise) => enterprise.contentMessages, { nullable: false })
+    // @JoinColumn({ name: "enterprise_id" })
+    // enterprise: Enterprise
 }

@@ -2,6 +2,9 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { DetService } from "../service/detService";
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
+import { MessageDownloader } from "../jobs/job.switchProfile";
+
+import puppeteer from "puppeteer";
 
 // Função para aguardar um delay em milissegundos
 function sleep(ms: number) {
@@ -29,13 +32,13 @@ export class DetController {
             const resultados = [];
             const cnpjsComProcuracao = [];
             const cnpjsComMensagens = [];
+            const cnpjsComNotificacoes = []
             const cnpjsCadastrados = [];
             const mensagensNaoLidasResumo = []
 
             let cnpjProcessados = 0
 
-            const batchSize = 2300 
-            // 2300; // Quantidade de CNPJs por lote
+            const batchSize = 2300  // Quantidade de CNPJs por lote
             const delay = 30000; // 30 segundos de delay para cada consulta por lote
 
             // const cnpjJaConsultado = new Set<string>()
@@ -108,18 +111,37 @@ export class DetController {
                                 cnpj: cnpjProcurado.Cnpj,
                                 mensagensNaoLidas
                             })
+
+                            const browser = await puppeteer.launch({ headless: true})
+                            const page = await browser.newPage()
+
+                            const downloader = new MessageDownloader(page)
+                            await downloader.acessarMensagensNaoLidas(cnpjProcurado.Cnpj)
+
+                            await browser.close()
+
                         } else {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} sem mensagens não lidas.`);
                         }
+
+                        const notificacoes = await detService.notifications(cnpjProcurado.Cnpj)
+
+                        if (!notificacoes) {
+                            console.log(`Nenhuma notificação encontrada para o CNPJ ${cnpjProcurado}`)
+                        } else if (notificacoes.length > 0) {
+                            console.log(`Foram encontradas ${notificacoes.length} notificações`)
+                        }
+
                         const servicoAutorizado = await detService.authorizedService(cnpjProcurado.Cnpj);
 
                         const caixaPostal = await detService.mailBox(cnpjProcurado.Cnpj, )
-
+                  
                         resultados.push({
                             cnpj: cnpjProcurado.Cnpj,
                             status: "Com procuração",
                             servicosHabilitados,
                             mensagensNaoLidas,
+                            notificacoes,
                             servicoAutorizado,
                             caixaPostal
                         });
@@ -137,7 +159,6 @@ export class DetController {
                     await sleep(delay);
                 }
             }
-
 
             if (mensagensNaoLidasResumo.length > 0) {
                 console.log("\n===== RESUMO DAS MENSAGENS NÃO LIDAS =====");

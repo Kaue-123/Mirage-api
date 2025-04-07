@@ -326,7 +326,7 @@ export class DetService {
         const cnpjEmpregador = cleanCNPJ(cnpjProcurado)
         console.log(`Consultando notificações do CNPJ: ${cnpjEmpregador}...`);
 
-        const url = `services/empregador/v1/notificacoes?tipoNi=0&ni=${cnpjEmpregador}`
+        const url = `/services/empregador/v1/notificacoes?tipoNi=0&ni=${cnpjEmpregador}`
         const response = await this.makeRequest('GET', url, cnpjProcurado)
 
         if (!response) {
@@ -339,9 +339,13 @@ export class DetService {
             return null
         }
 
-        const numeroNotificacoes = response.length
-        console.log(`Foram encontradas ${numeroNotificacoes} notificações para o CNPJ: ${cnpjEmpregador}. Armazenando...`)
-        return await this.saveNotification.saveToDataBase([cnpjEmpregador])
+        if (response.length === 0) {
+            console.log(`Nenhuma notificação encontrada para o CNPJ: ${cnpjEmpregador}.`);
+            return null;
+        }
+        
+        console.log(`Foram encontradas ${response.length} notificações para o CNPJ: ${cnpjEmpregador}. Armazenando...`)
+        return await this.saveNotification.saveToDataBase(cnpjEmpregador, response)
     }
 }
 

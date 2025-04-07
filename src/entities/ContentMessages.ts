@@ -2,7 +2,10 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm'
+import { Enterprise } from './Enterprises';
 
 @Entity()
 export class ContentMessages {
@@ -52,5 +55,8 @@ export class ContentMessages {
     @Column({ nullable: true })
     sistemaOrigem: string
 
+    @ManyToOne(() => Enterprise, (enterprise) => enterprise.contentMessages, { nullable: false })
+    @JoinColumn({ name: "enterprise_id" })
+    enterprise: Enterprise
 }
 
