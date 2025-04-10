@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { EnterpriseImportController } from '../controller/importJsonToDataBase/importEnterpriseController';
+import { EnterpriseImportController } from '../controllers/importJsonToDataBase/importEnterpriseController';
 import { EnterpriseRepository } from '../repository/EnterpriseRepository';
 
 export async function enterpriseRoutes(fastify: FastifyInstance) {

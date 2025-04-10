@@ -23,10 +23,6 @@ export class LoginService {
                 '--force-device-scale-factor=0.9',
                 '--ignore-certificate-errors',
                 '--allow-running-insecure-content',
-                '--auto-select-certificate-for-urls={"pattern":"https://det.sit.trabalho.gov.br","filter":{}}',
-                '--ssl-client-cert-file=C:\Users\Kaue\Certificados\cert.pem',
-                '--ssl-client-key-file=C:C:\Users\Kaue\Certificados\key.pem',
-                '--ssl-client-key-passphrase=27713412808'
             ],
             defaultViewport: { width: 1360, height: 768 },
         });
@@ -43,29 +39,38 @@ export class LoginService {
         await page.waitForSelector('#login-certificate', { visible: true, timeout: 40000 });
         await page.click('#login-certificate');
 
-        console.log("Enviando hCaptcha para o 2Captcha...");
-        const { data } = await axios.post('http://2captcha.com/in.php', null, {
-            params: {
-                key: "c60b640dd62d387ef1c4bcb792add8c6",
-                method: 'hcaptcha',
-                sitekey: '93b08d40-d46c-400a-ba07-6f91cda815b9',
-                pageurl: 'https://det.sit.trabalho.gov.br/login?r=%2Fservicos%2Fdet%2Findex.html',
-                json: 1
+
+
+        console.log("[INFO] Enviando hCaptcha para o 2Captcha...");
+        let taskId: string;
+        try {
+            const { data } = await axios.post('http://2captcha.com/in.php', null, {
+                params: {
+                    key: "c60b640dd62d387ef1c4bcb792add8c6",
+                    method: 'hcaptcha',
+                    sitekey: '93b08d40-d46c-400a-ba07-6f91cda815b9',
+                    pageurl: 'https://det.sit.trabalho.gov.br/login?r=%2Fservicos%2Fdet%2Findex.html',
+                    json: 1
+                }
+            });
+
+
+            if (data.status !== 1) {
+                console.error("Erro ao enviar hCaptcha para 2Captcha", data);
+                throw new Error("Falha no hCaptcha");
             }
-        });
 
-        if (data.status !== 1) {
-            console.error("Erro ao enviar hCaptcha para 2Captcha", data);
-            throw new Error("Falha no hCaptcha");
+            console.log("Captcha enviado. Task ID:", data.request);
+            taskId = data.request;
+        } catch (error: any) {
+            console.error("[ERRO] Falha ao enviar o Captcha:", error.message);
+            throw error;
         }
-
-        console.log("Captcha enviado. Task ID:", data.request);
-        const taskId = data.request;
 
         try {
             let captchaToken;
-            for (let i = 0; i < 30; i++) {
-                await new Promise(resolve => setTimeout(resolve, 500));
+            for (let i = 0; i < 60; i++) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 const { data: solutionResponse } = await axios.get('http://2captcha.com/res.php', {
                     params: {
                         key: "c60b640dd62d387ef1c4bcb792add8c6",
@@ -122,7 +127,7 @@ export class LoginService {
                     if (tokenHeader) {
                         this.bearerToken = tokenHeader;
                         console.log("Bearer Token capturado da resposta:", this.bearerToken);
-                        resolve(void 0);
+                        resolve(true);
                     }
                 }
             });

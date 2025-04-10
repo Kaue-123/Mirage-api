@@ -1,13 +1,13 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { LoginService } from "../../service/loginService";
 import { DetService } from "../../service/detService";
-import { DetController } from "../verificacaoController";
+import { DetController } from "../consultEmployers";
 
 export class LoginController {
     static async loginDET(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
             const loginService = new LoginService();
-            const { page} = await loginService.loginWithCertificate()
+            const { page } = await loginService.loginWithCertificate()
 
 
             const bearerToken = loginService.getBearerToken();
@@ -21,9 +21,9 @@ export class LoginController {
             await DetController.verificarProcuracao(request, reply); // Passa o request e reply para o DetController
 
 
-            return reply.send({ 
-                message: "Login efetuado com sucesso e CNPJs processados.", 
-                page 
+            return reply.send({
+                message: "Login efetuado com sucesso e CNPJs processados.",
+                page
             });
         } catch (error) {
             console.error("Erro no LoginController:", error);

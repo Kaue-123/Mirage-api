@@ -1,7 +1,7 @@
 import axios from "axios";
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
-import { cleanCNPJ } from "./replaceCNPJ/cnpjFormatado";
+import { cleanCNPJ } from "../utils/replaceCNPJ/cnpjFormatado";
 
 import { UpdateEnterprise } from "../repository/updateEnterpriseRepository";
 
@@ -10,22 +10,26 @@ import { SaveNotificationsService } from "./SaveContent/saveNotifications";
 
 
 
+
 export class DetService {
     private apiUrl = process.env.BASE_URL;
-    private certificadoCnpj = '34331182000103';
+    private certificadoCnpj = '34331182000103'; //Certificado KRS SERVIÇOS ADMINISTRATIVOS LTDA = 20514797000152
     private updateEnterprise = new UpdateEnterprise()
     private saveMessages = new SaveMessagesService()
     private saveNotification = new SaveNotificationsService()
 
-    private async getCnpjsFromDatabase(): Promise<Enterprise[]> {
+    
+
+
+    public async getCnpjsFromDatabase(): Promise<Enterprise[]> {
         const cnpjRepository = await AppdataSource.getRepository(Enterprise);
         return await cnpjRepository.find();
     }
 
-    private PerfilProcuracao: string | null = null
-    private NiOutorgante: string | null = null
+    public PerfilProcuracao: string | null = null
+    public NiOutorgante: string | null = null
 
-    constructor(private bearerToken: string) { }
+    constructor(public bearerToken: string) { }
     getBearerToken() {
         return this.bearerToken;
     }
@@ -152,6 +156,7 @@ export class DetService {
         const response = await this.makeRequest('GET', url);
         console.log('Resposta da requisição:', response);
 
+        
         if (!response || response === false || response === 'false' || response?.cadastro === false) {
             console.log(`CNPJ ${cnpjEmpregador} não cadastrado. Tentando cadastrar...`);
 
@@ -194,8 +199,8 @@ export class DetService {
                     email: "det.cyrela@krscalculos.com.br",
                     nome: "KRS Calculo",
                     origemCadastro: 0,
-                    telefone: "1129672888",
-                }
+                    telefone: "1129672888", //Trocar número de telefone
+                } 
             ]
         };
 

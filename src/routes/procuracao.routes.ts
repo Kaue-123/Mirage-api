@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { DetController } from "../controller/verificacaoController";
+import { DetController } from "../controllers/consultEmployers";
 
 export async function detRoutes(fastify: FastifyInstance) {
     fastify.get('/verificar-procuracao', async (request, reply) => {

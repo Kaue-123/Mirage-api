@@ -6,7 +6,7 @@ import { MessageDownloader } from "../jobs/job.switchProfile";
 
 import puppeteer from "puppeteer";
 
-// Função para aguardar um delay em milissegundos
+
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -43,6 +43,8 @@ export class DetController {
 
             // const cnpjJaConsultado = new Set<string>()
 
+            // const downloadContent = new MessageDownloader()
+            
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
                 const batch = cnpjsProcurados.slice(i, i + batchSize);
                 console.log(`Processando lote de ${batch.length} CNPJs...`);
@@ -50,25 +52,12 @@ export class DetController {
                 for (const cnpjProcurado of batch) {
                     console.log(`Processando CNPJ: ${cnpjProcurado.Cnpj}`);
 
-
-                    //  if (cnpjJaConsultado.has(cnpjProcurado.Cnpj)) {
-                    //      console.log("Esse cnpj ja foi consultado, passando para o proximo")
-                    //      continue
-                    //  }
-
-                    //  cnpjJaConsultado.add(cnpjProcurado.Cnpj)
-
                     bearerToken = detService.getBearerToken();
                     console.log(`Bearer Token atual: ${bearerToken}`);
 
                     if (!bearerToken) {
                         return reply.status(401).send({ message: "Token de autenticação não encontrado" });
                     }
-
-                    
-
-                    // await detService.verificarCadastro(cnpjProcurado.Cnpj)
-                    // await atualizarCadastroEmpresa(cnpjProcurado.Cnpj)
 
 
                     const servicosHabilitados = await detService.enableServices(cnpjProcurado);
@@ -90,7 +79,7 @@ export class DetController {
                         
                         if (resultadoCadastro?.error) {
                             console.log(`Erro ao tentar cadastrar CNPJ ${cnpjProcurado.Cnpj}, pulando para o próximo cnpj`)
-                            continue  // Armazena os CNPJs que foram cadastrados
+                            continue  
                         }
 
                         if (resultadoCadastro?.NiOutorgante) {
@@ -109,16 +98,11 @@ export class DetController {
 
                             mensagensNaoLidasResumo.push({ 
                                 cnpj: cnpjProcurado.Cnpj,
-                                mensagensNaoLidas
+                                mensagensNaoLidas,
+                                
                             })
 
-                            const browser = await puppeteer.launch({ headless: true})
-                            const page = await browser.newPage()
-
-                            const downloader = new MessageDownloader(page)
-                            await downloader.acessarMensagensNaoLidas(cnpjProcurado.Cnpj)
-
-                            await browser.close()
+                          
 
                         } else {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} sem mensagens não lidas.`);

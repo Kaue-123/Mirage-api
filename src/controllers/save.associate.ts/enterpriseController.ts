@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { EnterpriseRepository } from "../repository/EnterpriseRepository";
+import { EnterpriseRepository } from "../../repository/EnterpriseRepository";
 
 export class EnterpriseListController {
     private enterpriseRepository = new EnterpriseRepository();

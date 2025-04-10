@@ -16,11 +16,14 @@ export class SaveNotificationsService {
 
         const enterpriseRepository = AppdataSource.getRepository(Enterprise)
 
-        const enterprise = await enterpriseRepository.findOne({ 
+        const enterprise = await enterpriseRepository.findOne({
             where: {
                 Cnpj: cnpj
             }
         })
+        if (!enterprise) {
+            console.error("CNPJ não encontrado no banco de dados.")
+        }
         for (const msg of data) {
             const existingNotification = await this.notificationRepository.findOne({
                 where: {
@@ -44,7 +47,7 @@ export class SaveNotificationsService {
                     status: msg.status,
                     tipoNi: msg.tipoNI ?? 0,
                     ni: msg.ni,
-                    dataEnvio: msg.dataEnvio ? new Date(msg.dataEnvio): null,
+                    dataEnvio: msg.dataEnvio ? new Date(msg.dataEnvio) : null,
                     estabelecimentos: msg.estabelecimentos || null,
                     enderecos: msg.enderecos || null,
                     contatos: msg.contatos || null,
@@ -55,12 +58,12 @@ export class SaveNotificationsService {
                     rascunho: msg.rascunho || null,
                     uid: msg.uid,
                     rascunhoArquivoUri: msg.rascunhoArquivoUri || null,
-                    dataPrazoEntregaPadrao: msg.dataPrazoEntregaPadrao ? new Date(msg.dataPrazoEntregaPadrao): null,
-                    dataPeriodoInicioPadrao: msg.dataPeriodoInicioPadrao ? new Date(msg.dataPeriodoInicioPadrao): null,
-                    dataPeriodoFimPadrao: msg.dataPeriodoFimPadrao ? new Date(msg.dataPeriodoFimPadrao): null,
+                    dataPrazoEntregaPadrao: msg.dataPrazoEntregaPadrao ? new Date(msg.dataPrazoEntregaPadrao) : null,
+                    dataPeriodoInicioPadrao: msg.dataPeriodoInicioPadrao ? new Date(msg.dataPeriodoInicioPadrao) : null,
+                    dataPeriodoFimPadrao: msg.dataPeriodoFimPadrao ? new Date(msg.dataPeriodoFimPadrao) : null,
                     textosInformativosPadraoAtivos: msg.textosInformativosPadraoAtivos || null,
                     itemDataProximaEntrega: msg.itemDataProximaEntrega || null,
-                    itemAlertaEmpregador: msg.itemAlertaEmpregador ,
+                    itemAlertaEmpregador: msg.itemAlertaEmpregador,
                     updatedAt: msg.updatedAt || null,
                     clientId: msg.clientId || null,
                     horaPrazoEntregaPadrao: msg.horaPrazoEntregaPadrao || null,
@@ -70,7 +73,7 @@ export class SaveNotificationsService {
                 const savedContent = await this.notificationRepository.save(newNotification)
                 saveData.push(savedContent)
             }
-            
+
         }
 
         return saveData;
