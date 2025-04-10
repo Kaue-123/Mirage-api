@@ -1,8 +1,8 @@
-import { AppdataSource } from "../../db/data-source";
-import { ContentMessages } from "../../entities/ContentMessages";
+import { AppdataSource } from "../../database/data-source";
+import { ContentMessages } from "../../domain/entities/ContentMessages";
 import { Repository } from "typeorm";
-import { SanitizeHTMLContent } from "../../utils/sanitizeHTML/sanitize";
-import { Enterprise } from "../../entities/Enterprises";
+import { SanitizeHTMLContent } from "../../shared/utils/sanitize";
+import { Enterprise } from "../../domain/entities/Enterprises";
 
 export class SaveMessagesService {
     private messagesRepository: Repository<ContentMessages>;

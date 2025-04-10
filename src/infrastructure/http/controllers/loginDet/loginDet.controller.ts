@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { LoginService } from "../../service/loginService";
-import { DetService } from "../../service/detService";
-import { DetController } from "../consultEmployers";
+import { LoginService } from "../../../../domain/service/loginService";
+import { DetController } from "../request.enterprises";
 
 export class LoginController {
     static async loginDET(request: FastifyRequest, reply: FastifyReply): Promise<void> {

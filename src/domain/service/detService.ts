@@ -1,13 +1,10 @@
 import axios from "axios";
-import { AppdataSource } from "../db/data-source";
+import { AppdataSource } from "../../database/data-source";
 import { Enterprise } from "../entities/Enterprises";
-import { cleanCNPJ } from "../utils/replaceCNPJ/cnpjFormatado";
-
-import { UpdateEnterprise } from "../repository/updateEnterpriseRepository";
-
-import { SaveMessagesService } from "./SaveContent/saveMessages";
-import { SaveNotificationsService } from "./SaveContent/saveNotifications";
-
+import { cleanCNPJ } from "../../shared/utils/cnpjFormatado";
+import { UpdateEnterprise } from "../../database/repositories/updateEnterprise.repository";
+import { SaveMessagesService } from "../../infrastructure/services/saveMessages";
+import { SaveNotificationsService } from "../../infrastructure/services/saveNotifications";
 
 
 

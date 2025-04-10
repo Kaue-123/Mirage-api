@@ -1,9 +1,9 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Enterprise } from "../entities/Enterprises";
 import { config } from "dotenv";
-import { ContentMessages } from "../entities/ContentMessages";
-import { Notifications } from "../entities/Notifications";
+import { ContentMessages } from "../domain/entities/ContentMessages";
+import { Enterprise } from "../domain/entities/Enterprises";
+import { Notifications } from "../domain/entities/Notifications";
 
 config()
 

@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fastify_1 = __importDefault(require("fastify"));
-const routes_1 = require("./routes/routes");
-const data_source_1 = require("./db/data-source");
+const routes_1 = require("./infrastructure/http/routes/routes");
+const data_source_1 = require("./infrastructure/database/data-source");
 const main = async () => {
     const server = (0, fastify_1.default)({ logger: true });
     data_source_1.AppdataSource.initialize()
@@ -13,7 +13,7 @@ const main = async () => {
         server.register(routes_1.routes);
         server.register(routes_1.detRoutesLogin);
         server.register(routes_1.detVerificarProcuracao);
-        const port = 5022;
+        const port = 5023;
         server.listen({ port }, (err) => {
             if (err) {
                 server.log.error(err);

@@ -1,7 +1,8 @@
 import { Repository } from "typeorm";
-import { AppdataSource } from "../../db/data-source";
-import { Notifications } from "../../entities/Notifications";
-import { Enterprise } from "../../entities/Enterprises";
+import { AppdataSource } from "../../database/data-source";
+import { Enterprise } from "../../domain/entities/Enterprises";
+import { Notifications } from "../../domain/entities/Notifications";
+
 
 
 export class SaveNotificationsService {

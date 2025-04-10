@@ -1,6 +1,6 @@
 
-import { AppdataSource } from "../db/data-source";
-import { Enterprise } from "../entities/Enterprises";
+import { AppdataSource } from "../data-source";
+import { Enterprise } from "../../domain/entities/Enterprises";
 
 
 export class EnterpriseRepository {

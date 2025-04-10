@@ -1,9 +1,9 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { DetService } from "../service/detService";
-import { AppdataSource } from "../db/data-source";
-import { Enterprise } from "../entities/Enterprises";
+import { DetService } from "../../../domain/service/detService";
+import { AppdataSource } from "../../../database/data-source";
+import { Enterprise } from "../../../domain/entities/Enterprises";
 
-import puppeteer from "puppeteer";
+
 
 
 function sleep(ms: number) {

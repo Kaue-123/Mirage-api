@@ -1,11 +1,11 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { EnterpriseRepository } from "../../repository/EnterpriseRepository";
-import { Enterprise } from "../../entities/Enterprises";
+import { EnterpriseRepository } from "../../../../database/repositories/Enterprise.repository";
+import { Enterprise } from "../../../../domain/entities/Enterprises";
 
 import * as fs from "fs";
 import * as path from "path";
 
-import { enterpriseSchema } from "../../lib/schema";
+import { enterpriseSchema } from "../../../../application/dtos/schema";
 
 export class EnterpriseImportController {
   private enterpriseRepository = new EnterpriseRepository();

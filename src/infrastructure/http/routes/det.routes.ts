@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { LoginController } from '../controllers/loginDet/loginDetController';
+import { LoginController } from '../controllers/loginDet/loginDet.controller';
 
 
 export async function loginRoutes(fastify: FastifyInstance) {
