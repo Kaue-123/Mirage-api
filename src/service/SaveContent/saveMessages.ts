@@ -1,7 +1,7 @@
 import { AppdataSource } from "../../db/data-source";
 import { ContentMessages } from "../../entities/ContentMessages";
 import { Repository } from "typeorm";
-import { SanitizeHTMLContent } from "../sanitizeHTML/sanitize";
+import { SanitizeHTMLContent } from "../../utils/sanitizeHTML/sanitize";
 import { Enterprise } from "../../entities/Enterprises";
 
 export class SaveMessagesService {

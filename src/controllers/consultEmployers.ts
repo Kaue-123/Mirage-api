@@ -2,7 +2,6 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { DetService } from "../service/detService";
 import { AppdataSource } from "../db/data-source";
 import { Enterprise } from "../entities/Enterprises";
-import { MessageDownloader } from "../jobs/job.switchProfile";
 
 import puppeteer from "puppeteer";
 
