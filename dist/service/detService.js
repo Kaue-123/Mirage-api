@@ -14,7 +14,7 @@ const saveNotifications_1 = require("./SaveContent/saveNotifications");
 class DetService {
     bearerToken;
     apiUrl = process.env.BASE_URL;
-    certificadoCnpj = '34331182000103';
+    certificadoCnpj = '34331182000103'; //Certificado KRS SERVIÇOS ADMINISTRATIVOS LTDA = 20514797000152
     updateEnterprise = new updateEnterpriseRepository_1.UpdateEnterprise();
     saveMessages = new saveMessages_1.SaveMessagesService();
     saveNotification = new saveNotifications_1.SaveNotificationsService();
@@ -164,7 +164,7 @@ class DetService {
                     email: "det.cyrela@krscalculos.com.br",
                     nome: "KRS Calculo",
                     origemCadastro: 0,
-                    telefone: "1129672888",
+                    telefone: "1129672888", //Trocar número de telefone
                 }
             ]
         };

@@ -30,23 +30,17 @@ class DetController {
             const batchSize = 2300; // Quantidade de CNPJs por lote
             const delay = 30000; // 30 segundos de delay para cada consulta por lote
             // const cnpjJaConsultado = new Set<string>()
+            // const downloadContent = new MessageDownloader()
             for (let i = 0; i < cnpjsProcurados.length; i += batchSize) {
                 const batch = cnpjsProcurados.slice(i, i + batchSize);
                 console.log(`Processando lote de ${batch.length} CNPJs...`);
                 for (const cnpjProcurado of batch) {
                     console.log(`Processando CNPJ: ${cnpjProcurado.Cnpj}`);
-                    //  if (cnpjJaConsultado.has(cnpjProcurado.Cnpj)) {
-                    //      console.log("Esse cnpj ja foi consultado, passando para o proximo")
-                    //      continue
-                    //  }
-                    //  cnpjJaConsultado.add(cnpjProcurado.Cnpj)
                     bearerToken = detService.getBearerToken();
                     console.log(`Bearer Token atual: ${bearerToken}`);
                     if (!bearerToken) {
                         return reply.status(401).send({ message: "Token de autenticação não encontrado" });
                     }
-                    // await detService.verificarCadastro(cnpjProcurado.Cnpj)
-                    // await atualizarCadastroEmpresa(cnpjProcurado.Cnpj)
                     const servicosHabilitados = await detService.enableServices(cnpjProcurado);
                     if (servicosHabilitados.length === 0) {
                         console.log(`CNPJ ${cnpjProcurado.Cnpj} sem procuração.`);
@@ -61,7 +55,7 @@ class DetController {
                         const resultadoCadastro = await detService.checkRegistration(cnpjProcurado.Cnpj);
                         if (resultadoCadastro?.error) {
                             console.log(`Erro ao tentar cadastrar CNPJ ${cnpjProcurado.Cnpj}, pulando para o próximo cnpj`);
-                            continue; // Armazena os CNPJs que foram cadastrados
+                            continue;
                         }
                         if (resultadoCadastro?.NiOutorgante) {
                             console.log(`CNPJ ${cnpjProcurado.Cnpj} já estava cadastrado ou foi cadastrado agora.`);
